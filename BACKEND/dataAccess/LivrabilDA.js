@@ -1,6 +1,7 @@
 import Livrabil from '../entities/Livrabil.js';
 import Proiect from '../entities/Proiect.js';
 import Echipa from '../entities/Echipa.js';
+import Utilizator from '../entities/Utilizator.js';
 
 // Obține toate livrabilele
 export const getLivrabile = async () => {
@@ -89,5 +90,45 @@ export const deleteLivrabil = async (id) => {
     } catch (err) {
         console.error('Error deleting livrable:', err);
         throw err;
+    }
+};
+
+
+export const creareLivrabil = async ({ dataLivrare, videoLink, proiectLink, idProiect, userId, numeLivrabil }) => {
+    try {
+        // Verificăm dacă proiectul există
+        const proiect = await Proiect.findByPk(idProiect);
+        if (!proiect) {
+            throw new Error('Proiectul nu a fost găsit!');
+        }
+
+        // Verificăm dacă echipa proiectului există
+        const echipa = await Echipa.findByPk(proiect.EchipaId);
+        if (!echipa) {
+            throw new Error('Echipa proiectului nu a fost găsită!');
+        }
+
+        // Verificăm dacă utilizatorul face parte din echipa proiectului
+        const utilizatorInEchipa = await Utilizator.findOne({
+            where: { EchipaId: echipa.EchipaId, UtilizatorId: userId } // Condiție corectă de interogare
+        });
+
+        if (!utilizatorInEchipa) {
+            throw new Error('Nu faceți parte din echipa proiectului!');
+        }
+
+        // Creăm livrabilul
+        const livrabil = await Livrabil.create({
+            dataLivrare,
+            videoLink,
+            proiectLink,
+            numeLivrabil,
+            idProiect: idProiect,
+            EchipaId: echipa.EchipaId,  
+        });
+
+        return livrabil;
+    } catch (err) {
+        throw new Error(err.message);
     }
 };

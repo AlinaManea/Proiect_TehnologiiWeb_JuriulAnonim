@@ -42,15 +42,9 @@ function FK_Config()
 
     // rel noi
      // Relație 1-N: Utilizator -> Echipa
-    //  Echipa.hasMany(Utilizator, { as: "Membri", foreignKey: "EchipaId" });
-    //  Utilizator.belongsTo(Echipa, { foreignKey: "EchipaId" });
-
-     Echipa.hasMany(Utilizator, { as: "Membri", foreignKey: "EchipaId" }); // Echipa are mulți utilizatori
-     Utilizator.belongsTo(Echipa, { as: "Membri", foreignKey: "EchipaId" }); // Utilizatorul aparține unei echipe
-     
-// Echipa.hasMany(Utilizator, { as: "Membri", foreignKey: "EchipaId" }); // Echipa are membri
-// Utilizator.belongsTo(Echipa, { as: "Echipa", foreignKey: "EchipaId" }); // Utilizatorul aparține unei echipe
-
+    
+     Echipa.hasMany(Utilizator, { as: "Membri", foreignKey: "EchipaId" }); 
+     Utilizator.belongsTo(Echipa, { as: "Membri", foreignKey: "EchipaId" }); 
  
      // Configurarea relației 1:1
      Echipa.hasOne(Proiect, { as: "Proiect", foreignKey: "EchipaId" });

@@ -4,8 +4,10 @@ import {
     getLivrabilById,
     createLivrabil,
     updateLivrabil,
-    deleteLivrabil
+    deleteLivrabil,
+    creareLivrabil
 } from '../dataAccess/LivrabilDA.js';
+import authMiddleware from '../middleware/middlewareAuth.js';
 
 let livrabilRouter = express.Router();
 
@@ -73,6 +75,42 @@ livrabilRouter.route('/livrabil/:id').delete(async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error', error: err.message });
+    }
+});
+
+
+livrabilRouter.post('/proiect/:idProiect/livrabil', authMiddleware, async (req, res) => {
+    const { dataLivrare, videoLink, proiectLink,numeLivrabil } = req.body;
+    const { idProiect } = req.params;
+    const userId = req.user.id;  // ID-ul utilizatorului logat
+
+    try {
+        // Verificăm dacă datele necesare sunt completate
+        if (!dataLivrare || !videoLink || !proiectLink) {
+            return res.status(400).json({ message: 'Toate câmpurile sunt necesare (dataLivrare, videoLink, proiectLink).' });
+        }
+
+        // Apelăm funcția din dataAccess pentru a crea livrabilul
+        const livrabil = await creareLivrabil({
+            numeLivrabil,
+             dataLivrare,
+            videoLink,
+            proiectLink,
+            idProiect,
+            userId
+        });
+
+        return res.status(201).json(livrabil); // Livrabilul a fost creat cu succes
+    } catch (err) {
+        console.error(err);
+
+        // În cazul în care utilizatorul nu face parte din echipă sau există alte erori, trimitem un mesaj detaliat
+        if (err.message.includes("Nu faceți parte din echipa proiectului")) {
+            return res.status(403).json({ message: err.message });
+        }
+
+        // În cazul altor erori interne
+        return res.status(500).json({ message: 'Eroare la adăugarea livrabilului.', error: err.message });
     }
 });
 

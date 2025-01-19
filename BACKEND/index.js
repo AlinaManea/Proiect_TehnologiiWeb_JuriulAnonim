@@ -9,6 +9,7 @@ import echipaRouter from './routes/EchipaRouter.js';
 import proiectRouter from './routes/ProiectRouter.js';
 import livrabilRouter from './routes/LivrabilRouter.js';
 import evaluareRouter from './routes/EvaluareRouter.js';
+import routerAuth from './routes/AutentificareRoute.js';
 
 env.config();
 
@@ -26,7 +27,7 @@ app.use('/api', echipaRouter);
 app.use('/api', proiectRouter);
 app.use('/api', livrabilRouter);
 app.use('/api', evaluareRouter);
-
+app.use('/api/auth', routerAuth);
 
 // app.use(express.static('public'))
 // app.use(cors());

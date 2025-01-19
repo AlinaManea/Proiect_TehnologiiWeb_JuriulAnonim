@@ -28,6 +28,10 @@ const Livrabil = db.define("Livrabil", {
         type: Sequelize.DATE,
         allowNull: false
     },
+    numeLivrabil: { 
+        type: Sequelize.STRING,
+        allowNull: false 
+    },
     videoLink: {
         type: Sequelize.STRING,
         allowNull: true

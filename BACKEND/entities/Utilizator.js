@@ -15,7 +15,7 @@ const Utilizator=db.define("Utilizator",{
     UtilizatorEmail:{
         type:Sequelize.STRING,
         allowNull:false,
-        unique:false
+        unique: true
     },
     UtilizatorParola:{
         type:Sequelize.STRING,
@@ -27,14 +27,10 @@ const Utilizator=db.define("Utilizator",{
         allowNull:false
     },
     
-    EchipaId:{
-        type:Sequelize.INTEGER,
-        allowNull:false
-        // references:{
-        //     model:"Echipa",
-        //     key:"EchipaId"
-        // }
-    }
+    UtilizatorRol: {
+        type: Sequelize.ENUM("student", "profesor"), 
+        allowNull: false,
+    },
 }, {
     timestamps: true,  
 });

@@ -101,3 +101,34 @@ export async function deleteProiect(id) {
         return { msg: 'Unable to delete project: ' + err.message, error: true };
     }
 }
+
+
+export async function creareProiect(data, userId) {
+    try {
+        // Căutăm echipa în baza de date pentru a ne asigura că există
+        const echipa = await Echipa.findByPk(data.EchipaId);
+        if (!echipa) {
+            throw new Error('Echipa nu a fost găsită!');
+        }
+
+        // Verificăm dacă utilizatorul logat face parte din echipa respectivă
+        const utilizatoriInEchipa = await Utilizator.findAll({
+            where: { EchipaId: data.EchipaId, UtilizatorId: userId }
+        });
+
+        if (utilizatoriInEchipa.length === 0) {
+            throw new Error('Utilizatorul nu face parte din echipa specificată!');
+        }
+
+        // Creăm proiectul legat de echipa respectivă
+        const proiect = await Proiect.create({
+            titlu: data.titlu,
+            EchipaId: data.EchipaId
+        });
+
+        return proiect; 
+    } catch (err) {
+        throw new Error('Nu am reușit să creăm proiectul: ' + err.message);
+    }
+}
+

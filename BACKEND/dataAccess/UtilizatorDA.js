@@ -51,6 +51,12 @@ async function getUtilizatorById(id) {
     });
 }
 
+async function getUtilizatorByEmail(email) {
+    return await Utilizator.findOne({
+        where: { UtilizatorEmail: email },
+        include: [{ model: Echipa, as: "Membri" }]
+    });
+}
 // Funcția de creare a unui utilizator
 async function createUtilizator(utilizator) {
     try {
@@ -127,6 +133,7 @@ async function getUtilizatoriWithFilterAndPagination(filter) {
 export {
     getUtilizatori,
     getUtilizatorById,
+    getUtilizatorByEmail,
     createUtilizator,
     updateUtilizator,
     deleteUtilizator,
