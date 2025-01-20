@@ -1,6 +1,5 @@
 import express from 'express';
-import { getProiecte, getProiectById, createProiect, updateProiect, deleteProiect, creareProiect } from '../dataAccess/ProiectDA.js';
-import authenticateToken from '../middleware/middlewareAuth.js';
+import { getProiecte, getProiectById, createProiect, updateProiect, deleteProiect, creareProiect,getLivrabileByProiectId} from '../dataAccess/ProiectDA.js';
 import authMiddleware from '../middleware/middlewareAuth.js';
 
 let proiectRouter = express.Router();
@@ -65,6 +64,7 @@ proiectRouter.route('/proiect/:id').delete(async (req, res) => {
     }
 });
 
+
 //craere proiecte de catre utilizator
 proiectRouter.post('/creareproiect', authMiddleware, async (req, res) => {
     const { titlu, EchipaId } = req.body;
@@ -81,25 +81,33 @@ proiectRouter.post('/creareproiect', authMiddleware, async (req, res) => {
     }
 
     try {
-        // Verificăm dacă echipa există
-        const echipa = await Echipa.findOne({ where: { id: EchipaId } });
-        if (!echipa) {
-            return res.status(404).json({ message: 'Echipa specificată nu există!' });
-        }
-
-        // Verificăm dacă utilizatorul este membru al echipei
-        const esteMembruInEchipa = await verificaMembruInEchipa(EchipaId, userId);
-        if (!esteMembruInEchipa) {
-            return res.status(403).json({ message: 'Nu faci parte din echipa specificată!' });
-        }
-
-        // Apelăm funcția pentru crearea proiectului
+        // Apelăm funcția pentru crearea proiectului, care va gestiona și verificarea echipei
         const proiect = await creareProiect({ titlu, EchipaId }, userId);
-        return res.status(201).json(proiect); // Returnăm proiectul creat
+        return res.status(201).json(proiect); 
     } catch (err) {
-        return res.status(500).json({ message: err.message });
+        console.error(err);
+        return res.status(500).json({ message: 'Eroare la crearea proiectului: ' + err.message });
     }
 });
 
+
+// Ruta pentru vizualizarea livrabilelor pentru toată lumea
+
+proiectRouter.get('/proiect/:idProiect/livrabile', authMiddleware, async (req, res) => {
+    try {
+        const { idProiect } = req.params;
+
+        // Folosim funcția din dataAccess
+        const proiect = await getLivrabileByProiectId(idProiect);
+
+        res.status(200).json(proiect);
+    } catch (err) {
+        if (err.message === 'Proiectul nu a fost găsit!') {
+            return res.status(404).json({ error: err.message });
+        }
+
+        res.status(500).json({ error: err.message });
+    }
+});
 
 export default proiectRouter;

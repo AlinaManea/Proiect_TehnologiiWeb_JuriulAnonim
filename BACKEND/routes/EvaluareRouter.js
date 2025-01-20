@@ -1,7 +1,41 @@
 import express from 'express';
 import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare } from '../dataAccess/EvaluareDA.js';
+import  authMiddleware from '../middleware/middlewareAuth.js';
+import Proiect from '../entities/Proiect.js';
+import Livrabil from '../entities/Livrabil.js';
+
+import { selecteazaJuriu } from '../dataAccess/juriuController.js';
 
 let evaluareRouter = express.Router();
+
+
+// Ruta pentru selectarea juriului
+// evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', async (req, res) => {
+//     try {
+//         const { idProiect, numarJurati } = req.params;
+//         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
+//         res.status(200).json(jurati);
+//     } catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// });
+
+let juriuSelectat = {}; // Obiect pentru stocarea juriului selectat per proiect
+
+// După selectarea juriului, se salveaza ID-urile în `juriuSelectat`
+evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', async (req, res) => {
+    try {
+        const { idProiect, numarJurati } = req.params;
+        const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
+        
+        // Salvează ID-urile utilizatorilor selectați ca juriu pentru proiectul respectiv
+        juriuSelectat[idProiect] = jurati;
+
+        res.status(200).json(jurati);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // GET: Obține toate evaluările
 evaluareRouter.route('/evaluare').get(async (req, res) => {
@@ -63,4 +97,8 @@ evaluareRouter.route('/evaluare/:id').delete(async (req, res) => {
     }
 });
 
+
+// evaluareRouter.post('/selecteaza-juriu/:proiectId', authMiddleware, selecteazaJuriu);
+// evaluareRouter.post('/acorda-nota/:proiectId', authMiddleware, acordaNota);
+// evaluareRouter.get('/nota-finala/:proiectId', authMiddleware, calculeazaNotaFinala);
 export default evaluareRouter;

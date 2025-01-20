@@ -3,6 +3,43 @@ import Echipa from '../entities/Echipa.js';
 import Livrabil from '../entities/Livrabil.js';
 import Utilizator from '../entities/Utilizator.js';
 
+export const getLivrabileByProiectId = async (idProiect) => {
+    try {
+        // Găsim proiectul împreună cu livrabilele și echipa
+        const proiect = await Proiect.findByPk(idProiect, {
+            include: [
+                {
+                    model: Livrabil,
+                    as: 'Livrabile', 
+                    attributes: ['idLivrabil', 'numeLivrabil', 'dataLivrare', 'videoLink', 'proiectLink']
+                },
+                {
+                    model: Echipa,
+                    as: 'Echipa', 
+                    attributes: ['EchipaId', 'EchipaNume']
+                }
+            ]
+        });
+        // Verificăm dacă proiectul există
+        if (!proiect) {
+            throw new Error('Proiectul nu a fost găsit!');
+        }
+
+        // Returnează proiectul cu livrabilele incluse
+        return {
+            idProiect: proiect.idProiect,
+            titlu: proiect.titlu,
+            EchipaId: proiect.EchipaId,
+            Livrabile: proiect.Livrabile, 
+            Echipa: proiect.Echipa, 
+        };
+    } catch (err) {
+        console.error('Error fetching livrabile by proiect id:', err);
+        throw err;
+    }
+};
+
+
 export async function getProiecte() {
     try {
         return await Proiect.findAll({
@@ -131,4 +168,5 @@ export async function creareProiect(data, userId) {
         throw new Error('Nu am reușit să creăm proiectul: ' + err.message);
     }
 }
+
 

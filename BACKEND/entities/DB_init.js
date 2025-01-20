@@ -51,8 +51,8 @@ function FK_Config()
      Proiect.belongsTo(Echipa, { foreignKey: "EchipaId" });
  
      // Relație 1-N: Proiect -> Livrabil
-     Proiect.hasMany(Livrabil, { as: "Livrabile", foreignKey: "ProiectId" });
-     Livrabil.belongsTo(Proiect, { foreignKey: "ProiectId" });
+     Proiect.hasMany(Livrabil, { as: "Livrabile", foreignKey: "idProiect" });
+     Livrabil.belongsTo(Proiect, { foreignKey: "idProiect" });
  
      // Relație 1-N: Echipa -> Livrabil
      Echipa.hasMany(Livrabil, { as: "Livrabile", foreignKey: "EchipaId" });

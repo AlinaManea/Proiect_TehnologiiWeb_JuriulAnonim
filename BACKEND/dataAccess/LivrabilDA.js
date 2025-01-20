@@ -3,6 +3,8 @@ import Proiect from '../entities/Proiect.js';
 import Echipa from '../entities/Echipa.js';
 import Utilizator from '../entities/Utilizator.js';
 
+
+
 // Obține toate livrabilele
 export const getLivrabile = async () => {
     try {

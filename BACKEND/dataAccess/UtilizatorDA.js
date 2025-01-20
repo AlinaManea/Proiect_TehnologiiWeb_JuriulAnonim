@@ -47,7 +47,7 @@ async function getUtilizatori() {
 // Funcția de obținere a unui utilizator după ID
 async function getUtilizatorById(id) {
     return await Utilizator.findByPk(id, {
-        include: [{ model: Echipa, as: "Membri" }] // Folosim aliasul "Membri"
+        include: [{ model: Echipa, as: "Membri" }] 
     });
 }
 
@@ -61,7 +61,7 @@ async function getUtilizatorByEmail(email) {
 async function createUtilizator(utilizator) {
     try {
         return await Utilizator.create(utilizator, {
-            include: [{ model: Echipa, as: "Membri" }] // Folosim aliasul "Membri"
+            include: [{ model: Echipa, as: "Membri" }] 
         });
     } catch (e) {
         if (e.message.includes("notNull Violation")) {

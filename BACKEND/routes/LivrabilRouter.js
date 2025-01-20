@@ -5,9 +5,11 @@ import {
     createLivrabil,
     updateLivrabil,
     deleteLivrabil,
-    creareLivrabil
+    creareLivrabil,
 } from '../dataAccess/LivrabilDA.js';
 import authMiddleware from '../middleware/middlewareAuth.js';
+import validator from 'validator';
+
 
 let livrabilRouter = express.Router();
 
@@ -78,40 +80,71 @@ livrabilRouter.route('/livrabil/:id').delete(async (req, res) => {
     }
 });
 
-
 livrabilRouter.post('/proiect/:idProiect/livrabil', authMiddleware, async (req, res) => {
-    const { dataLivrare, videoLink, proiectLink,numeLivrabil } = req.body;
+    const { numeLivrabil, dataLivrare, videoLink, proiectLink } = req.body;
     const { idProiect } = req.params;
-    const userId = req.user.id;  // ID-ul utilizatorului logat
+    const userId = req.user.id; // ID-ul utilizatorului logat
 
     try {
-        // Verificăm dacă datele necesare sunt completate
-        if (!dataLivrare || !videoLink || !proiectLink) {
-            return res.status(400).json({ message: 'Toate câmpurile sunt necesare (dataLivrare, videoLink, proiectLink).' });
+        // Validări pentru câmpurile trimise
+        if (!numeLivrabil || numeLivrabil.trim() === "") {
+            return res.status(400).json({ message: 'Numele livrabilului este obligatoriu!' });
         }
+
+        if (!dataLivrare || !validator.isISO8601(dataLivrare)) {
+            return res.status(400).json({
+                message: 'Data livrării trebuie să fie într-un format ISO8601 valid (ex: 2025-01-30T12:00:00Z).'
+            });
+        }
+
+        // if (videoLink && !validator.isURL(videoLink, { protocols: ['http', 'https'] })) {
+        //     return res.status(400).json({ message: 'Link-ul video nu este valid!' });
+        // }
+
+        // if (proiectLink && !validator.isURL(proiectLink, { protocols: ['http', 'https'] })) {
+        //     return res.status(400).json({ message: 'Link-ul proiectului nu este valid!' });
+        // }
+
+        if (videoLink && !/^https?:\/\//i.test(videoLink)) {
+            return res.status(400).json({ message: 'Link-ul video trebuie să înceapă cu http:// sau https://' });
+        }
+        
+        if (proiectLink && !/^https?:\/\//i.test(proiectLink)) {
+            return res.status(400).json({ message: 'Link-ul proiectului trebuie să înceapă cu http:// sau https://' });
+        }
+        
 
         // Apelăm funcția din dataAccess pentru a crea livrabilul
         const livrabil = await creareLivrabil({
             numeLivrabil,
-             dataLivrare,
+            dataLivrare,
             videoLink,
             proiectLink,
             idProiect,
             userId
         });
 
-        return res.status(201).json(livrabil); // Livrabilul a fost creat cu succes
+        return res.status(201).json({
+            message: 'Livrabilul a fost creat cu succes!',
+            livrabil
+        });
     } catch (err) {
         console.error(err);
 
         // În cazul în care utilizatorul nu face parte din echipă sau există alte erori, trimitem un mesaj detaliat
-        if (err.message.includes("Nu faceți parte din echipa proiectului")) {
+        if (err.message.includes('Nu faceți parte din echipa proiectului')) {
             return res.status(403).json({ message: err.message });
         }
 
         // În cazul altor erori interne
-        return res.status(500).json({ message: 'Eroare la adăugarea livrabilului.', error: err.message });
+        return res.status(500).json({
+            message: 'Eroare la adăugarea livrabilului.',
+            error: err.message
+        });
     }
 });
+
+
+
 
 export default livrabilRouter;
