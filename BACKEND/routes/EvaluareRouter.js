@@ -1,14 +1,36 @@
 import express from 'express';
 import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare } from '../dataAccess/EvaluareDA.js';
-import  authMiddleware from '../middleware/middlewareAuth.js';
-import Proiect from '../entities/Proiect.js';
-import Livrabil from '../entities/Livrabil.js';
-
+//import  authMiddleware from '../middleware/middlewareAuth.js';
+import {authMiddleware, checkRole } from '../middleware/middlewareAuth.js';
 import { selecteazaJuriu } from '../dataAccess/juriuController.js';
 
 let evaluareRouter = express.Router();
 
+// Ruta pentru selectarea juriului (cu autentificare și verificare rol profesor)
+let juriuSelectat = {}; 
+// evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', authMiddleware, checkRole('profesor'), async (req, res) => {
+//     try {
+//         const { idProiect, numarJurati } = req.params;
+//         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
+//         juriuSelectat[idProiect] = jurati;
 
+//         res.status(200).json(jurati);
+//     } catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// });
+evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', authMiddleware, checkRole('profesor'), async (req, res) => {
+    try {
+        const { idProiect, numarJurati } = req.params;
+
+        // Apelează funcția selectează juriul și obține ID-urile studenților selectați
+        const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
+
+        res.status(200).json({ jurati }); 
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 // Ruta pentru selectarea juriului
 // evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', async (req, res) => {
 //     try {
@@ -20,22 +42,22 @@ let evaluareRouter = express.Router();
 //     }
 // });
 
-let juriuSelectat = {}; // Obiect pentru stocarea juriului selectat per proiect
+// let juriuSelectat = {}; // Obiect pentru stocarea juriului selectat per proiect
 
-// După selectarea juriului, se salveaza ID-urile în `juriuSelectat`
-evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', async (req, res) => {
-    try {
-        const { idProiect, numarJurati } = req.params;
-        const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
+// // După selectarea juriului, se salveaza ID-urile în `juriuSelectat`
+// evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', async (req, res) => {
+//     try {
+//         const { idProiect, numarJurati } = req.params;
+//         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
         
-        // Salvează ID-urile utilizatorilor selectați ca juriu pentru proiectul respectiv
-        juriuSelectat[idProiect] = jurati;
+//         // Salvează ID-urile utilizatorilor selectați ca juriu pentru proiectul respectiv
+//         juriuSelectat[idProiect] = jurati;
 
-        res.status(200).json(jurati);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+//         res.status(200).json(jurati);
+//     } catch (err) {
+//         res.status(500).json({ error: err.message });
+//     }
+// });
 
 // GET: Obține toate evaluările
 evaluareRouter.route('/evaluare').get(async (req, res) => {

@@ -51,15 +51,17 @@ export const login = async (req, res) => {
         }
 
         // creare token JWT
+      
         const token = jwt.sign(
             {
                 id: user.UtilizatorId,
-                role: user.UtilizatorRol,
+                role: user.UtilizatorRol, // Aceasta este cheia care ar trebui să fie utilizată
                 echipa: user.EchipaId,
             },
             JWT_SECRET,
-            { expiresIn: '24h' } 
+            { expiresIn: '24h' }
         );
+        
 
         return res.status(200).json({ message: 'Autentificare reușită!', token });
     } catch (error) {

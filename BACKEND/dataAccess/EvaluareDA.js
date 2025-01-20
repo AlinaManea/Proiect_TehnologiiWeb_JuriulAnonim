@@ -94,51 +94,93 @@ export async function deleteEvaluare(id) {
 
 import { Op } from 'sequelize';
 
-// 1. Selectarea aleatorie a juriului
-export const selecteazaJuriu = async (req, res) => {
-    try {
-        const { proiectId } = req.params;
-        const DIMENSIUNE_JURIU = 5; // Să avem suficienți jurați pentru a elimina note extreme
+// // 1. Selectarea aleatorie a juriului
+// export const selecteazaJuriu = async (req, res) => {
+//     try {
+//         const { proiectId } = req.params;
+//         const DIMENSIUNE_JURIU = 5; 
 
-        // Găsim proiectul și membrii echipei
+//         // Găsim proiectul și membrii echipei
+//         const proiect = await Proiect.findOne({
+//             where: { idProiect: proiectId },
+//             include: [{
+//                 model: Utilizator,
+//                 as: 'Membri'
+//             }]
+//         });
+
+//         if (!proiect) {
+//             return res.status(404).json({ message: "Proiectul nu există" });
+//         }
+
+//         // Găsim ID-urile membrilor echipei pentru a-i exclude
+//         const idMembriiEchipa = proiect.Membri.map(membru => membru.UtilizatorId);
+
+//         // Selectăm aleator studenți care NU sunt în echipă
+//         const juratiSelectati = await Utilizator.findAll({
+//             where: {
+//                 UtilizatorId: { [Op.notIn]: idMembriiEchipa },
+//                 UtilizatorRol: 'student'
+//             },
+//             order: Sequelize.literal('RAND()'),
+//             limit: DIMENSIUNE_JURIU
+//         });
+
+//         // Creăm înregistrări în tabelul Evaluare pentru jurații selectați
+//         await Promise.all(juratiSelectati.map(jurat => 
+//             Evaluare.create({
+//                 ProiectId: proiectId,
+//                 UtilizatorId: jurat.UtilizatorId,
+//                 Nota: null // Va fi completată când juratul acordă nota
+//             })
+//         ));
+
+//         res.json({ message: "Juriul a fost selectat cu succes" });
+
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// };
+
+// 1. Selectarea aleatorie a juriului
+export const selecteazaJuriu = async (proiectId, numarJurati) => {
+    try {
+        // 1. Găsim echipa proiectului
         const proiect = await Proiect.findOne({
             where: { idProiect: proiectId },
             include: [{
-                model: Utilizator,
-                as: 'Membri'
+                model: Echipa,
+                as: 'Proiect',
+                include: [{
+                    model: Utilizator,
+                    as: 'Membri',
+                    attributes: ['UtilizatorId'] // Ne interesează doar ID-urile utilizatorilor din echipă
+                }]
             }]
         });
 
         if (!proiect) {
-            return res.status(404).json({ message: "Proiectul nu există" });
+            throw new Error("Proiectul nu există");
         }
 
-        // Găsim ID-urile membrilor echipei pentru a-i exclude
-        const idMembriiEchipa = proiect.Membri.map(membru => membru.UtilizatorId);
+        // 2. Extragem membrii echipei proiectului
+        const idMembriiEchipa = proiect.Proiect.Membri.map(membru => membru.UtilizatorId);
 
-        // Selectăm aleator studenți care NU sunt în echipă
+        // 3. Selectăm studenții care nu sunt în echipa proiectului
         const juratiSelectati = await Utilizator.findAll({
             where: {
-                UtilizatorId: { [Op.notIn]: idMembriiEchipa },
-                UtilizatorRol: 'student'
+                UtilizatorRol: 'student', // Filtrăm doar studenții
+                UtilizatorId: { [Op.notIn]: idMembriiEchipa } // Excludem membrii echipei
             },
-            order: Sequelize.literal('RAND()'),
-            limit: DIMENSIUNE_JURIU
+            order: Sequelize.literal('RAND()'), // Selectare aleatorie
+            limit: numarJurati
         });
 
-        // Creăm înregistrări în tabelul Evaluare pentru jurații selectați
-        await Promise.all(juratiSelectati.map(jurat => 
-            Evaluare.create({
-                ProiectId: proiectId,
-                UtilizatorId: jurat.UtilizatorId,
-                Nota: null // Va fi completată când juratul acordă nota
-            })
-        ));
-
-        res.json({ message: "Juriul a fost selectat cu succes" });
+        // 4. Returnăm ID-urile studenților selectați
+        return juratiSelectati.map(jurat => jurat.UtilizatorId);
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        throw new Error("Eroare la selectarea juriului: " + error.message);
     }
 };
 

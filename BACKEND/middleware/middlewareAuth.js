@@ -11,10 +11,11 @@ export const authMiddleware = (req, res, next) => {
             return res.status(401).json({ message: 'Token lipsă' });
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded); 
         req.user = decoded;
         next();
+        
     } catch (err) {
-        // Dacă token-ul nu este valid sau expirat, returnăm eroare
         return res.status(401).json({ message: 'Token invalid sau expirat' });
     }
 };
@@ -44,5 +45,19 @@ export const authMiddleware = (req, res, next) => {
 //         next();
 //     };
 // };
+
+// Middleware pentru verificarea rolului unui utilizator
+export const checkRole = (requiredRole) => {
+    return (req, res, next) => {
+        const userRole = req.user?.role;
+        console.log("Rolul utilizatorului:", userRole); // Verifică rolul utilizatorului
+
+        if (userRole !== requiredRole) {
+            return res.status(403).json({ message: 'Acces interzis. Rol nepermis.' });
+        }
+
+        next();
+    };
+};
 
 export default authMiddleware;
