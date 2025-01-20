@@ -1,50 +1,16 @@
-// import Utilizator from '../entities/Utilizator.js';
-
-// async function  createUtilizator(utilizator) {
-//     return await Utilizator.create(utilizator);
-// }
-
-// async function getUtilizatori() {
-//     return await Utilizator.findAll();
-// }
-
-// async function getUtilizatorById(id) {
-//     return await Utilizator.findByPk(id);
-// }
-
-// async function updateUtilizator(utilizator,id) {
-//     if(parseInt(id)!==utilizator.UtilizatorId)
-//         return {error:true,msg:"Entity id diff"}
-
-//     let updateE=await getUtilizatorId(id);
-//     if(!updateE)
-//         return{error:true,msg:"No entity found"}
-
-//     return{error:false,msg:"",obj:await updateE.update(utilizator)}
-// }
-
-// async function deleteUtilizator(id) {
-//     let deteleE=await getUtilizatorId(id);
-//     if(!deteleE)
-//         return{error:true,msg:"No entity found"}
-
-//     return{error:false,msg:"",obj:await deteleE.destroy()}
-// }
-
-// export {createUtilizator,getUtilizatori,getUtilizatorById,updateUtilizator,deleteUtilizator}
 
 import Utilizator from "../entities/Utilizator.js";
 import Echipa from "../entities/Echipa.js";
 import LikeOp from "./Operators.js";
 
-// Funcția de obținere a tuturor utilizatorilor
+
 async function getUtilizatori() {
     return await Utilizator.findAll({
-        include: [{ model: Echipa, as: "Membri" }] // Folosim aliasul "Membri"
+        include: [{ model: Echipa, as: "Membri" }] 
     });
 }
 
-// Funcția de obținere a unui utilizator după ID
+
 async function getUtilizatorById(id) {
     return await Utilizator.findByPk(id, {
         include: [{ model: Echipa, as: "Membri" }] 

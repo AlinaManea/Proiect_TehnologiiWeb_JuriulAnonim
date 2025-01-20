@@ -20,37 +20,11 @@ export const authMiddleware = (req, res, next) => {
     }
 };
 
-// Middleware pentru verificarea juriului
-// export function juriuMiddleware(req, res, next) {
-//     const { idProiect } = req.params;
-//     const utilizatorId = req.user.id;
-
-//     // Verifică dacă utilizatorul este în juriul proiectului specific
-//     if (juriuSelectat[idProiect] && juriuSelectat[idProiect].includes(utilizatorId)) {
-//         return next();
-//     }
-
-//     res.status(403).json({ error: 'Acces interzis. Nu faceți parte din juriu.' });
-// }
-
-// // Middleware pentru verificarea rolului unui utilizator
-// export const checkRole = (roles) => {
-//     return (req, res, next) => {
-//         // Verificăm dacă rolul utilizatorului se află în lista de roluri permise
-//         if (!roles.includes(req.user.UtilizatorRol)) {
-//             return res.status(403).json({ message: 'Acces interzis. Rol nepermis.' });
-//         }
-
-//         // Dacă rolul este permis, continuăm procesarea cererii
-//         next();
-//     };
-// };
-
 // Middleware pentru verificarea rolului unui utilizator
 export const checkRole = (requiredRole) => {
     return (req, res, next) => {
         const userRole = req.user?.role;
-        console.log("Rolul utilizatorului:", userRole); // Verifică rolul utilizatorului
+        console.log("Rolul utilizatorului:", userRole); 
 
         if (userRole !== requiredRole) {
             return res.status(403).json({ message: 'Acces interzis. Rol nepermis.' });

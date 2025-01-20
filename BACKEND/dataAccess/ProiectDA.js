@@ -5,7 +5,7 @@ import Utilizator from '../entities/Utilizator.js';
 
 export const getLivrabileByProiectId = async (idProiect) => {
     try {
-        // Găsim proiectul împreună cu livrabilele și echipa
+       
         const proiect = await Proiect.findByPk(idProiect, {
             include: [
                 {
@@ -20,12 +20,12 @@ export const getLivrabileByProiectId = async (idProiect) => {
                 }
             ]
         });
-        // Verificăm dacă proiectul există
+        
         if (!proiect) {
             throw new Error('Proiectul nu a fost găsit!');
         }
 
-        // Returnează proiectul cu livrabilele incluse
+       
         return {
             idProiect: proiect.idProiect,
             titlu: proiect.titlu,
@@ -46,17 +46,17 @@ export async function getProiecte() {
             include: [
                 {
                     model: Echipa,
-                    as: 'Echipa',  // alias-ul pentru relația 1:1
+                    as: 'Echipa', 
                     required: true
                 },
                 {
                     model: Livrabil,
-                    as: 'Livrabile', // alias-ul pentru relația 1:N între Proiect și Livrabil
+                    as: 'Livrabile', 
                     required: false
                 },
                 {
                     model: Utilizator,
-                    as: 'Utilizatori', // alias-ul pentru relația N:M prin Evaluare
+                    as: 'Utilizatori', 
                     required: false
                 }
             ]
@@ -142,13 +142,12 @@ export async function deleteProiect(id) {
 
 export async function creareProiect(data, userId) {
     try {
-        // Căutăm echipa în baza de date pentru a ne asigura că există
+        
         const echipa = await Echipa.findByPk(data.EchipaId);
         if (!echipa) {
             throw new Error('Echipa nu a fost găsită!');
         }
 
-        // Verificăm dacă utilizatorul logat face parte din echipa respectivă
         const utilizatoriInEchipa = await Utilizator.findAll({
             where: { EchipaId: data.EchipaId, UtilizatorId: userId }
         });
@@ -157,7 +156,6 @@ export async function creareProiect(data, userId) {
             throw new Error('Utilizatorul nu face parte din echipa specificată!');
         }
 
-        // Creăm proiectul legat de echipa respectivă
         const proiect = await Proiect.create({
             titlu: data.titlu,
             EchipaId: data.EchipaId

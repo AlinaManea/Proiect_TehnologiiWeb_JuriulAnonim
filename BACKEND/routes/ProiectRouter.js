@@ -69,19 +69,15 @@ proiectRouter.route('/proiect/:id').delete(async (req, res) => {
 proiectRouter.post('/creareproiect', authMiddleware, async (req, res) => {
     const { titlu, EchipaId } = req.body;
     const userId = req.user.id;
-
-    // Verificăm dacă utilizatorul are rolul 'student'
     if (req.user.role !== 'student') {
         return res.status(403).json({ message: 'Numai studenții pot crea proiecte!' });
     }
 
-    // Verificăm dacă sunt furnizate titlul și echipa
     if (!titlu || !EchipaId) {
         return res.status(400).json({ message: 'Titlu și EchipaId sunt necesare!' });
     }
 
     try {
-        // Apelăm funcția pentru crearea proiectului, care va gestiona și verificarea echipei
         const proiect = await creareProiect({ titlu, EchipaId }, userId);
         return res.status(201).json(proiect); 
     } catch (err) {
@@ -96,8 +92,6 @@ proiectRouter.post('/creareproiect', authMiddleware, async (req, res) => {
 proiectRouter.get('/proiect/:idProiect/livrabile', authMiddleware, async (req, res) => {
     try {
         const { idProiect } = req.params;
-
-        // Folosim funcția din dataAccess
         const proiect = await getLivrabileByProiectId(idProiect);
 
         res.status(200).json(proiect);

@@ -83,10 +83,9 @@ livrabilRouter.route('/livrabil/:id').delete(async (req, res) => {
 livrabilRouter.post('/proiect/:idProiect/livrabil', authMiddleware, async (req, res) => {
     const { numeLivrabil, dataLivrare, videoLink, proiectLink } = req.body;
     const { idProiect } = req.params;
-    const userId = req.user.id; // ID-ul utilizatorului logat
+    const userId = req.user.id; 
 
     try {
-        // Validări pentru câmpurile trimise
         if (!numeLivrabil || numeLivrabil.trim() === "") {
             return res.status(400).json({ message: 'Numele livrabilului este obligatoriu!' });
         }
@@ -113,8 +112,6 @@ livrabilRouter.post('/proiect/:idProiect/livrabil', authMiddleware, async (req, 
             return res.status(400).json({ message: 'Link-ul proiectului trebuie să înceapă cu http:// sau https://' });
         }
         
-
-        // Apelăm funcția din dataAccess pentru a crea livrabilul
         const livrabil = await creareLivrabil({
             numeLivrabil,
             dataLivrare,
@@ -130,21 +127,15 @@ livrabilRouter.post('/proiect/:idProiect/livrabil', authMiddleware, async (req, 
         });
     } catch (err) {
         console.error(err);
-
-        // În cazul în care utilizatorul nu face parte din echipă sau există alte erori, trimitem un mesaj detaliat
         if (err.message.includes('Nu faceți parte din echipa proiectului')) {
             return res.status(403).json({ message: err.message });
         }
-
-        // În cazul altor erori interne
         return res.status(500).json({
             message: 'Eroare la adăugarea livrabilului.',
             error: err.message
         });
     }
 });
-
-
 
 
 export default livrabilRouter;

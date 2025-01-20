@@ -55,7 +55,7 @@ export const login = async (req, res) => {
         const token = jwt.sign(
             {
                 id: user.UtilizatorId,
-                role: user.UtilizatorRol, // Aceasta este cheia care ar trebui să fie utilizată
+                role: user.UtilizatorRol, 
                 echipa: user.EchipaId,
             },
             JWT_SECRET,

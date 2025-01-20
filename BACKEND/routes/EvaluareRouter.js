@@ -1,26 +1,20 @@
 import express from 'express';
-import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare,adaugaJuriu} from '../dataAccess/EvaluareDA.js';
-//import  authMiddleware from '../middleware/middlewareAuth.js';
+import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare,adaugaJuriu, acordaNota,esteJuratPentruProiect,getToateNotelePtProfesor,getNotaPropriuProiect} from '../dataAccess/EvaluareDA.js';
 import {authMiddleware, checkRole } from '../middleware/middlewareAuth.js';
 import { selecteazaJuriu } from '../dataAccess/juriuController.js';
+
 
 let evaluareRouter = express.Router();
 
 // Ruta pentru selectarea juriului (cu autentificare și verificare rol profesor)
 let juriuSelectat = {}; 
-
 evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', authMiddleware, checkRole('profesor'), async (req, res) => {
     try {
         const { idProiect, numarJurati } = req.params;
-
-        // Apelează funcția selectează juriul și obține ID-urile studenților selectați
         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
-
-        // Dacă nu există erori, trimitem lista juraților
         res.status(200).json({ jurati });
 
     } catch (err) {
-        // Dacă a apărut vreo eroare (proiectul are deja un juriu selectat sau alta eroare)
         res.status(400).json({ error: err.message });
     }
 });
@@ -43,35 +37,49 @@ evaluareRouter.post('/adauga-juriu', authMiddleware, checkRole('profesor'), asyn
     }
 });
 
-import { acordaNota,esteJuratPentruProiect } from '../dataAccess/EvaluareDA.js';
 
-evaluareRouter.put('/acorda-nota/:proiectId', authMiddleware, checkRole('student'), async (req, res) => {
+
+// Rută pentru acordarea notei
+evaluareRouter.put('/acorda-nota/:proiectId', authMiddleware, async (req, res) => {
     try {
         const { proiectId } = req.params;
-        const { nota } = req.body;  // Nu mai ai nevoie de utilizatorId în body
+        const { nota } = req.body;
+        const utilizatorId = req.user.id; 
 
-        // Verifică dacă utilizatorul este jurat pentru proiectul respectiv
-        const esteJurat = await esteJuratPentruProiect(proiectId, req.utilizator.id);
-        
+        const esteJurat = await esteJuratPentruProiect(proiectId, utilizatorId);
         if (!esteJurat) {
-            return res.status(403).json({ error: "Nu poți acorda nota acestui proiect. Nu ești jurat pentru acest proiect." });
+            return res.status(403).json({ message: 'Nu sunteți autorizat să acordați notă pentru acest proiect' });
         }
 
-        // Verifică dacă nota este între 1 și 10
-        if (nota < 1 || nota > 10) {
-            throw new Error("Nota trebuie să fie între 1 și 10");
-        }
+        const evaluareActualizata = await acordaNota(proiectId, utilizatorId, nota);
+        res.status(200).json(evaluareActualizata);
 
-        // Acordă nota în baza de date
-        const evaluareActualizata = await acordaNota(proiectId, req.utilizator.id, nota);
-
-        // Răspunsul la succes
-        res.status(200).json({ message: 'Nota a fost adăugată cu succes', evaluare: evaluareActualizata });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
+    } catch (error) {
+        console.error('Eroare la acordarea notei:', error);
+        res.status(500).json({ message: error.message });
     }
 });
 
+// Ruta pentru profesor - vizualizarea listelor cu proiecte + notele finale aferente
+evaluareRouter.get('/note-finale', authMiddleware, checkRole('profesor'), async (req, res) => {
+    try {
+        const noteFinale = await getToateNotelePtProfesor();
+        res.status(200).json(noteFinale);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Rută pentru student - vedere nota propriului proiect
+evaluareRouter.get('/nota-mea', authMiddleware, async (req, res) => {
+    try {
+        const utilizatorId = req.user.id;
+        const notaProiect = await getNotaPropriuProiect(utilizatorId);
+        res.status(200).json(notaProiect);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 // GET: Obține toate evaluările
 evaluareRouter.route('/evaluare').get(async (req, res) => {
@@ -134,7 +142,4 @@ evaluareRouter.route('/evaluare/:id').delete(async (req, res) => {
 });
 
 
-// evaluareRouter.post('/selecteaza-juriu/:proiectId', authMiddleware, selecteazaJuriu);
-// evaluareRouter.post('/acorda-nota/:proiectId', authMiddleware, acordaNota);
-// evaluareRouter.get('/nota-finala/:proiectId', authMiddleware, calculeazaNotaFinala);
 export default evaluareRouter;

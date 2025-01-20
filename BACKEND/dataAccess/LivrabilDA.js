@@ -13,12 +13,12 @@ export const getLivrabile = async () => {
                 {
                     model: Proiect,
                     as: 'Proiect',
-                    attributes: ['titlu'] // Exemplu de a include doar câteva câmpuri ale proiectului
+                    attributes: ['titlu'] 
                 },
                 {
                     model: Echipa,
                     as: 'Echipa',
-                    attributes: ['id', 'nume'] // Include doar câmpurile necesare din Echipa
+                    attributes: ['id', 'nume'] 
                 }
             ]
         });
@@ -98,28 +98,25 @@ export const deleteLivrabil = async (id) => {
 
 export const creareLivrabil = async ({ dataLivrare, videoLink, proiectLink, idProiect, userId, numeLivrabil }) => {
     try {
-        // Verificăm dacă proiectul există
         const proiect = await Proiect.findByPk(idProiect);
         if (!proiect) {
             throw new Error('Proiectul nu a fost găsit!');
         }
 
-        // Verificăm dacă echipa proiectului există
         const echipa = await Echipa.findByPk(proiect.EchipaId);
         if (!echipa) {
             throw new Error('Echipa proiectului nu a fost găsită!');
         }
 
-        // Verificăm dacă utilizatorul face parte din echipa proiectului
         const utilizatorInEchipa = await Utilizator.findOne({
-            where: { EchipaId: echipa.EchipaId, UtilizatorId: userId } // Condiție corectă de interogare
+            where: { EchipaId: echipa.EchipaId, UtilizatorId: userId } 
         });
 
         if (!utilizatorInEchipa) {
             throw new Error('Nu faceți parte din echipa proiectului!');
         }
 
-        // Creăm livrabilul
+    
         const livrabil = await Livrabil.create({
             dataLivrare,
             videoLink,

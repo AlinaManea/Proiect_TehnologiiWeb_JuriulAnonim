@@ -7,14 +7,11 @@ import { Op } from 'sequelize';
 // Funcție pentru selectarea aleatorie a juriului
 export async function selecteazaJuriu(idProiect, numarJurati) {
     try {
-        // Găsim proiectul specific
         const proiect = await Proiect.findByPk(idProiect);
 
         if (!proiect) {
             throw new Error('Proiectul nu a fost găsit!');
         }
-
-        // Găsim utilizatorii care nu sunt în echipa proiectului și au rolul de student
         const studentiDisponibili = await Utilizator.findAll({
             where: {
                 EchipaId: { [Op.ne]: proiect.EchipaId },
