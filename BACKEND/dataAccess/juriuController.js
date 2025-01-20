@@ -26,7 +26,6 @@ export async function selecteazaJuriu(idProiect, numarJurati) {
             throw new Error('Nu există suficienți studenți disponibili pentru a forma juriul.');
         }
 
-        // Selectăm aleatoriu un număr de studenți
         const juratiSelectati = studentiDisponibili
             .sort(() => 0.5 - Math.random())
             .slice(0, numarJurati);

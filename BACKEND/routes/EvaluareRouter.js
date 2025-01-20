@@ -1,5 +1,5 @@
 import express from 'express';
-import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare } from '../dataAccess/EvaluareDA.js';
+import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare,adaugaJuriu} from '../dataAccess/EvaluareDA.js';
 //import  authMiddleware from '../middleware/middlewareAuth.js';
 import {authMiddleware, checkRole } from '../middleware/middlewareAuth.js';
 import { selecteazaJuriu } from '../dataAccess/juriuController.js';
@@ -8,17 +8,7 @@ let evaluareRouter = express.Router();
 
 // Ruta pentru selectarea juriului (cu autentificare și verificare rol profesor)
 let juriuSelectat = {}; 
-// evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', authMiddleware, checkRole('profesor'), async (req, res) => {
-//     try {
-//         const { idProiect, numarJurati } = req.params;
-//         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
-//         juriuSelectat[idProiect] = jurati;
 
-//         res.status(200).json(jurati);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
 evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', authMiddleware, checkRole('profesor'), async (req, res) => {
     try {
         const { idProiect, numarJurati } = req.params;
@@ -26,38 +16,62 @@ evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', authMiddleware, 
         // Apelează funcția selectează juriul și obține ID-urile studenților selectați
         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
 
-        res.status(200).json({ jurati }); 
+        // Dacă nu există erori, trimitem lista juraților
+        res.status(200).json({ jurati });
+
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        // Dacă a apărut vreo eroare (proiectul are deja un juriu selectat sau alta eroare)
+        res.status(400).json({ error: err.message });
     }
 });
-// Ruta pentru selectarea juriului
-// evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', async (req, res) => {
-//     try {
-//         const { idProiect, numarJurati } = req.params;
-//         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
-//         res.status(200).json(jurati);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
 
-// let juriuSelectat = {}; // Obiect pentru stocarea juriului selectat per proiect
+//Punere in baza de date evaluare
 
-// // După selectarea juriului, se salveaza ID-urile în `juriuSelectat`
-// evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', async (req, res) => {
-//     try {
-//         const { idProiect, numarJurati } = req.params;
-//         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
+evaluareRouter.post('/adauga-juriu', authMiddleware, checkRole('profesor'), async (req, res) => {
+    try {
+        const { idProiect, jurati } = req.body;  
+        if (!idProiect || !jurati || jurati.length === 0) {
+            throw new Error("ID-ul proiectului și lista de jurați sunt obligatorii");
+        }
+
+        const result = await adaugaJuriu(idProiect, jurati);
+        res.status(200).json({ message: 'Jurații au fost adăugați cu succes', evaluari: result });
+
+    } catch (err) {
+
+        res.status(400).json({ error: err.message });
+    }
+});
+
+import { acordaNota,esteJuratPentruProiect } from '../dataAccess/EvaluareDA.js';
+
+evaluareRouter.put('/acorda-nota/:proiectId', authMiddleware, checkRole('student'), async (req, res) => {
+    try {
+        const { proiectId } = req.params;
+        const { nota } = req.body;  // Nu mai ai nevoie de utilizatorId în body
+
+        // Verifică dacă utilizatorul este jurat pentru proiectul respectiv
+        const esteJurat = await esteJuratPentruProiect(proiectId, req.utilizator.id);
         
-//         // Salvează ID-urile utilizatorilor selectați ca juriu pentru proiectul respectiv
-//         juriuSelectat[idProiect] = jurati;
+        if (!esteJurat) {
+            return res.status(403).json({ error: "Nu poți acorda nota acestui proiect. Nu ești jurat pentru acest proiect." });
+        }
 
-//         res.status(200).json(jurati);
-//     } catch (err) {
-//         res.status(500).json({ error: err.message });
-//     }
-// });
+        // Verifică dacă nota este între 1 și 10
+        if (nota < 1 || nota > 10) {
+            throw new Error("Nota trebuie să fie între 1 și 10");
+        }
+
+        // Acordă nota în baza de date
+        const evaluareActualizata = await acordaNota(proiectId, req.utilizator.id, nota);
+
+        // Răspunsul la succes
+        res.status(200).json({ message: 'Nota a fost adăugată cu succes', evaluare: evaluareActualizata });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
 
 // GET: Obține toate evaluările
 evaluareRouter.route('/evaluare').get(async (req, res) => {

@@ -1,6 +1,8 @@
 import Evaluare from '../entities/Evaluare.js';
 import Proiect from '../entities/Proiect.js';
 import Utilizator from '../entities/Utilizator.js';
+import Echipa from '../entities/Echipa.js';
+
 
 // GET: Obține toate evaluările
 export async function getEvaluari() {
@@ -92,7 +94,7 @@ export async function deleteEvaluare(id) {
 }
 
 
-import { Op } from 'sequelize';
+
 
 // // 1. Selectarea aleatorie a juriului
 // export const selecteazaJuriu = async (req, res) => {
@@ -143,130 +145,181 @@ import { Op } from 'sequelize';
 // };
 
 // 1. Selectarea aleatorie a juriului
-export const selecteazaJuriu = async (proiectId, numarJurati) => {
+// export const selecteazaJuriu = async (proiectId, numarJurati) => {
+//     try {
+//         // 1. Găsim echipa proiectului
+//         const proiect = await Proiect.findOne({
+//             where: { idProiect: proiectId },
+//             include: [{
+//                 model: Echipa,
+//                 as: 'Proiect',
+//                 include: [{
+//                     model: Utilizator,
+//                     as: 'Membri',
+//                     attributes: ['UtilizatorId'] // Ne interesează doar ID-urile utilizatorilor din echipă
+//                 }]
+//             }]
+//         });
+
+//         if (!proiect) {
+//             throw new Error("Proiectul nu există");
+//         }
+
+//         // 2. Extragem membrii echipei proiectului
+//         const idMembriiEchipa = proiect.Proiect.Membri.map(membru => membru.UtilizatorId);
+
+//         // 3. Selectăm studenții care nu sunt în echipa proiectului
+//         const juratiSelectati = await Utilizator.findAll({
+//             where: {
+//                 UtilizatorRol: 'student', // Filtrăm doar studenții
+//                 UtilizatorId: { [Op.notIn]: idMembriiEchipa } // Excludem membrii echipei
+//             },
+//             order: Sequelize.literal('RAND()'), // Selectare aleatorie
+//             limit: numarJurati
+//         });
+
+//         // 4. Returnăm ID-urile studenților selectați
+//         return juratiSelectati.map(jurat => jurat.UtilizatorId);
+
+//     } catch (error) {
+//         throw new Error("Eroare la selectarea juriului: " + error.message);
+//     }
+// };
+
+ 
+import { Sequelize, Op } from 'sequelize';
+
+ export const selecteazaJuriu = async (proiectId, numarJurati) => {
     try {
-        // 1. Găsim echipa proiectului
+        // 1. Verifică dacă proiectul există
         const proiect = await Proiect.findOne({
             where: { idProiect: proiectId },
-            include: [{
-                model: Echipa,
-                as: 'Proiect',
-                include: [{
-                    model: Utilizator,
-                    as: 'Membri',
-                    attributes: ['UtilizatorId'] // Ne interesează doar ID-urile utilizatorilor din echipă
-                }]
-            }]
         });
 
         if (!proiect) {
             throw new Error("Proiectul nu există");
         }
 
-        // 2. Extragem membrii echipei proiectului
-        const idMembriiEchipa = proiect.Proiect.Membri.map(membru => membru.UtilizatorId);
-
-        // 3. Selectăm studenții care nu sunt în echipa proiectului
-        const juratiSelectati = await Utilizator.findAll({
-            where: {
-                UtilizatorRol: 'student', // Filtrăm doar studenții
-                UtilizatorId: { [Op.notIn]: idMembriiEchipa } // Excludem membrii echipei
-            },
-            order: Sequelize.literal('RAND()'), // Selectare aleatorie
-            limit: numarJurati
+        // 2. Găsește membrii echipei care nu trebuie să fie selectați ca jurați
+        const membriiEchipei = await Utilizator.findAll({
+            where: { EchipaId: proiect.EchipaId }, // Găsim membrii echipei acestui proiect
+            attributes: ['UtilizatorId'],
         });
 
-        // 4. Returnăm ID-urile studenților selectați
-        return juratiSelectati.map(jurat => jurat.UtilizatorId);
+        const idMembriiEchipa = membriiEchipei.map(membru => membru.UtilizatorId);
 
+        // 3. Selectează studenți care nu sunt în echipa proiectului
+        const juratiSelectati = await Utilizator.findAll({
+            where: {
+                UtilizatorRol: 'student',  // Asigură-te că sunt studenți
+                UtilizatorId: { [Op.notIn]: idMembriiEchipa },  // Exclude membrii echipei
+            },
+            order: Sequelize.literal('RAND()'),  // Selectează aleatoriu
+            limit: numarJurati,
+        });
+
+        // 4. Verifică dacă proiectul are deja un juriu
+        const juriuExistent = await Evaluare.findOne({
+            where: { ProiectId: proiectId },
+        });
+
+        if (juriuExistent) {
+            throw new Error("Proiectul are deja un juriu selectat!");
+        }
+
+        // 5. Construiește lista de evaluări pentru fiecare jurat selectat
+        const evaluari = juratiSelectati.map(jurat => ({
+            ProiectId: proiectId,       // ID-ul proiectului
+            UtilizatorId: jurat.UtilizatorId, // ID-ul juratului (studentului)
+            Nota: null,  // Inițial, nota este NULL
+        }));
+
+        // 6. Adaugă jurații în tabela Evaluare
+        await Evaluare.bulkCreate(evaluari);
+
+        // 7. Returnează ID-urile studenților selectați ca jurați
+        return juratiSelectati.map(jurat => jurat.UtilizatorId);
     } catch (error) {
         throw new Error("Eroare la selectarea juriului: " + error.message);
     }
 };
 
-// 2. Acordarea notei de către un membru al juriului
-export const acordaNota = async (req, res) => {
-    try {
-        const { proiectId } = req.params;
-        const { nota } = req.body;
-        const utilizatorId = req.user.id; // Din token-ul de autentificare
 
-        // Verificăm dacă utilizatorul este în juriu
-        const evaluare = await Evaluare.findOne({
-            where: {
-                ProiectId: proiectId,
-                UtilizatorId: utilizatorId
-            }
+
+export const adaugaJuriu = async (idProiect, jurati) => {
+    try {
+        // Verificăm dacă jurații au fost deja adăugați pentru proiectul respectiv
+        const jurațiExistenti = await Evaluare.findAll({
+            where: { ProiectId: idProiect, UtilizatorId: { [Op.in]: jurati } },
+            attributes: ['UtilizatorId']
         });
 
-        if (!evaluare) {
-            return res.status(403).json({ 
-                message: "Nu sunteți membru al juriului pentru acest proiect" 
-            });
+        // Extragem ID-urile juraților existenți pentru a le evita
+        const idJuratiExistenti = jurațiExistenti.map(jurat => jurat.UtilizatorId);
+
+        // Filtrăm lista de jurați pentru a păstra doar cei care nu au fost adăugați deja
+        const juratiDeAdaugat = jurati.filter(juratId => !idJuratiExistenti.includes(juratId));
+
+        // Dacă nu sunt jurați de adăugat, aruncăm o eroare
+        if (juratiDeAdaugat.length === 0) {
+            throw new Error('Toți jurații au fost deja adăugați pentru acest proiect');
         }
 
-        // Validăm nota (1-10 cu 2 zecimale)
-        const notaNumber = parseFloat(nota);
-        if (isNaN(notaNumber) || notaNumber < 1 || notaNumber > 10) {
-            return res.status(400).json({ 
-                message: "Nota trebuie să fie între 1 și 10" 
-            });
-        }
+        // Creăm un array de evaluări pentru fiecare jurat selectat care nu a fost încă adăugat
+        const evaluari = juratiDeAdaugat.map(juratId => ({
+            ProiectId: idProiect,
+            UtilizatorId: juratId,
+            Nota: null,  // Inițial, Nota este NULL
+        }));
 
-        // Rotunjim la 2 zecimale
-        const notaRotunjita = Math.round(notaNumber * 100) / 100;
+        // Adăugăm evaluările în tabela Evaluare
+        const result = await Evaluare.bulkCreate(evaluari);
 
-        // Salvăm nota
-        await evaluare.update({ Nota: notaRotunjita });
-
-        res.json({ message: "Nota a fost acordată cu succes" });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        // Returnăm evaluările adăugate
+        return result;
+    } catch (err) {
+        throw new Error(err.message);
     }
 };
 
-// 3. Calculul notei finale (pentru profesori)
-export const calculeazaNotaFinala = async (req, res) => {
+//Verificare daca e jurat
+export const esteJuratPentruProiect = async (proiectId, utilizatorId) => {
+    // Căutăm dacă există o evaluare pentru utilizatorul respectiv și proiectul respectiv
+    const evaluare = await Evaluare.findOne({
+        where: {
+            ProiectId: proiectId,
+            UtilizatorId: utilizatorId
+        }
+    });
+
+    // Dacă nu există evaluare, utilizatorul nu este jurat pentru acel proiect
+    return evaluare ? true : false;
+};
+
+//Acordare nota 
+export const acordaNota = async (proiectId, utilizatorId, nota) => {
     try {
-        const { proiectId } = req.params;
-
-        // Verificăm dacă utilizatorul este profesor
-        if (req.user.rol !== 'profesor') {
-            return res.status(403).json({ 
-                message: "Doar profesorii pot vedea nota finală" 
-            });
-        }
-
-        // Luăm toate notele pentru proiect
-        const evaluari = await Evaluare.findAll({
-            where: {
-                ProiectId: proiectId,
-                Nota: { [Op.not]: null } // Doar notele acordate
-            }
+        // Verificăm dacă evaluarea există deja
+        const evaluare = await Evaluare.findOne({
+            where: { ProiectId: proiectId, UtilizatorId: utilizatorId },
         });
 
-        if (evaluari.length < 3) {
-            return res.status(400).json({ 
-                message: "Nu sunt suficiente note pentru a calcula media" 
-            });
+        // Dacă evaluarea nu există, aruncăm o eroare
+        if (!evaluare) {
+            throw new Error("Evaluarea nu există pentru acest utilizator și proiect");
         }
 
-        // Sortăm notele și eliminăm cea mai mare și cea mai mică
-        const note = evaluari.map(e => e.Nota).sort((a, b) => a - b);
-        const noteFiltrate = note.slice(1, -1);
+        // Validăm nota (de exemplu, între 1 și 10)
+        if (nota < 1 || nota > 10) {
+            throw new Error("Nota trebuie să fie între 1 și 10");
+        }
 
-        // Calculăm media
-        const suma = noteFiltrate.reduce((acc, curr) => acc + curr, 0);
-        const notaFinala = Math.round((suma / noteFiltrate.length) * 100) / 100;
+        // Actualizăm nota
+        evaluare.Nota = nota;
+        await evaluare.save(); // Salvăm modificările în baza de date
 
-        res.json({
-            notaFinala,
-            numarNote: note.length,
-            noteEliminateMicMare: [note[0], note[note.length - 1]]
-        });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        return evaluare; // Returnăm evaluarea actualizată
+    } catch (err) {
+        throw new Error(err.message);
     }
 };
