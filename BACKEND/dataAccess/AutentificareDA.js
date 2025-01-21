@@ -39,7 +39,6 @@ export const login = async (req, res) => {
     const { UtilizatorEmail, UtilizatorParola } = req.body;
 
     try {
-       
         const user = await Utilizator.findOne({ where: { UtilizatorEmail } });
         if (!user) {
             return res.status(400).json({ message: 'Utilizator sau parolă incorectă.' });
@@ -50,20 +49,27 @@ export const login = async (req, res) => {
             return res.status(400).json({ message: 'Utilizator sau parolă incorectă.' });
         }
 
-        // creare token JWT
-      
         const token = jwt.sign(
             {
                 id: user.UtilizatorId,
-                role: user.UtilizatorRol, 
+                role: user.UtilizatorRol,
                 echipa: user.EchipaId,
             },
             JWT_SECRET,
             { expiresIn: '24h' }
         );
-        
 
-        return res.status(200).json({ message: 'Autentificare reușită!', token });
+        // Trimitem și datele utilizatorului împreună cu token-ul
+        return res.status(200).json({ 
+            message: 'Autentificare reușită!', 
+            token,
+            user: {
+                name: user.UtilizatorNume,
+                email: user.UtilizatorEmail,
+                rol: user.UtilizatorRol,
+                teamId: user.EchipaId
+            }
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: 'Eroare la autentificare.' });
