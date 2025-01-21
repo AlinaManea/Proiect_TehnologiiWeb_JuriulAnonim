@@ -21,7 +21,7 @@ function Home({ user, onLogout }) {
         { id: 'view-grades', label: 'Vizualizare Note', path: '/vizualizare-note' }
       ];
     }
-    return []; // În caz că rolul nu este definit, returnăm o listă goală
+    return []; 
   };
 
   const menuItems = getMenuItems(user?.rol);

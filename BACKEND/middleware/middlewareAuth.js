@@ -11,6 +11,10 @@ export const authMiddleware = (req, res, next) => {
             return res.status(401).json({ message: 'Token lipsă' });
         }
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = {
+            id: decoded.id,
+            rol: decoded.rol 
+        };
         console.log(decoded); 
         req.user = decoded;
         next();

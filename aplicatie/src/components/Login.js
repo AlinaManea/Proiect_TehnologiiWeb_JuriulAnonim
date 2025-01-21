@@ -28,10 +28,8 @@ function Login({ loginData, setLoginData }) {
       if (response.status === 200) {
         const { user, token } = response.data;
         
-        // Salvăm token-ul în localStorage pentru autentificare persistentă
         localStorage.setItem('token', token);
-        
-        // Actualizăm starea cu datele utilizatorului
+      
         setLoginData(prevState => ({
           ...prevState,
           isLoggedIn: true,
@@ -41,7 +39,6 @@ function Login({ loginData, setLoginData }) {
           teamId: user.teamId
         }));
 
-        // Redirecționăm către Home
         navigate('/');
       }
     } catch (error) {
@@ -54,6 +51,7 @@ function Login({ loginData, setLoginData }) {
         alert('Eroare la trimiterea cererii');
       }
     }
+    
   };
 
   return (
