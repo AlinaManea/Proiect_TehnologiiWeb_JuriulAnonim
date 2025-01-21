@@ -10,6 +10,7 @@ import proiectRouter from './routes/ProiectRouter.js';
 import livrabilRouter from './routes/LivrabilRouter.js';
 import evaluareRouter from './routes/EvaluareRouter.js';
 import routerAuth from './routes/AutentificareRoute.js';
+import cors from 'cors';
 
 env.config();
 
@@ -21,6 +22,14 @@ app.use(express.urlencoded({
     extended: true
 }))
 
+app.use(cors({
+    origin: 'http://localhost:3000',  // Specifică frontend-ul
+    credentials: true,  // Permite autentificarea (cookies sau tokenuri)
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  }));
+  
+
 app.use('/api',createDbRouter);
 app.use('/api', utilizatorRouter);
 app.use('/api', echipaRouter);
@@ -30,7 +39,7 @@ app.use('/api', evaluareRouter);
 app.use('/api/auth', routerAuth);
 
 // app.use(express.static('public'))
-// app.use(cors());
+//  app.use(cors());
 // app.use("/api", router);
 
 DB_Init();
