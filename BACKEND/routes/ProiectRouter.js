@@ -104,4 +104,38 @@ proiectRouter.get('/proiect/:idProiect/livrabile', authMiddleware, async (req, r
     }
 });
 
+
+proiectRouter.get('/proiecte-cu-livrabile', authMiddleware, async (req, res) => {
+    try {
+        console.log("User from request:", req.user);
+        const proiecte = await getProiecteWithLivrabile();
+        console.log("Projects retrieved:", proiecte);
+        res.status(200).json(proiecte);
+    } catch (error) {
+        console.error('Detailed error:', error);
+        res.status(500).json({
+            message: 'Eroare la obținerea proiectelor și livrabilelor',
+            error: error.message,
+            stack: error.stack 
+        });
+    }
+});
+
+// Ruta pentru vizualizarea livrabilelor pentru toată lumea
+
+proiectRouter.get('/proiect/:idProiect/livrabile', authMiddleware, async (req, res) => {
+    try {
+        const { idProiect } = req.params;
+        const proiect = await getLivrabileByProiectId(idProiect);
+
+        res.status(200).json(proiect);
+    } catch (err) {
+        if (err.message === 'Proiectul nu a fost găsit!') {
+            return res.status(404).json({ error: err.message });
+        }
+
+        res.status(500).json({ error: err.message });
+    }
+});
+
 export default proiectRouter;

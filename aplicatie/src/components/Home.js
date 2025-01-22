@@ -12,6 +12,8 @@ function Home({ user, onLogout }) {
         { id: 'projects', label: 'Înscriere proiect', path: '/inscriere-proiect' },
         { id: 'livrabile', label: 'Încărcare livrabil', path: '/incarcare-livrabil' },
         { id: 'vizualizare', label: 'Vizualizare proiect', path: '/vizualizare-proiecte' },
+        { id: 'evaluare', label: 'Evaluare proiect', path: '/evaluare-proiect' }
+        
       ];
     } else if (rol === 'profesor') {
       return [

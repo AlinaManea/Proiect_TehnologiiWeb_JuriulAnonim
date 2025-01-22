@@ -140,6 +140,40 @@ export async function deleteProiect(id) {
 }
 
 
+
+
+export const getProiecteWithLivrabile = async () => {
+    try {
+        console.log("Starting query for projects");
+        const proiecte = await Proiect.findAll({
+            include: [
+                {
+                    model: Echipa,
+                    as: 'Echipa',
+                    attributes: ['EchipaNume']
+                },
+                {
+                    model: Livrabil,
+                    as: 'Livrabile',
+                    attributes: ['idLivrabil', 'numeLivrabil', 'dataLivrare', 'videoLink', 'proiectLink']
+                }
+            ],
+            attributes: ['idProiect', 'titlu']
+        });
+        
+        console.log("Query completed, projects found:", proiecte?.length || 0);
+        
+        if (!proiecte || proiecte.length === 0) {
+            return []; // Return empty array instead of throwing error
+        }
+        
+        return proiecte;
+    } catch (error) {
+        console.error("Error in getProiecteWithLivrabile:", error);
+        throw error;
+    }
+};
+
 export async function creareProiect(data, userId) {
     try {
         const echipa = await Echipa.findByPk(data.EchipaId);
@@ -174,6 +208,3 @@ export async function creareProiect(data, userId) {
         throw err; // Aruncăm eroarea așa cum este
     }
 }
-
-
-

@@ -137,5 +137,4 @@ livrabilRouter.post('/proiect/:idProiect/livrabil', authMiddleware, async (req, 
     }
 });
 
-
 export default livrabilRouter;
