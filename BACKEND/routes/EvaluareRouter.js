@@ -1,5 +1,5 @@
 import express from 'express';
-import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare,adaugaJuriu, acordaNota,esteJuratPentruProiect,getToateNotelePtProfesor,getNotaPropriuProiect} from '../dataAccess/EvaluareDA.js';
+import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare,adaugaJuriu, acordaNota,esteJuratPentruProiect,getToateNotelePtProfesor,getNotaPropriuProiect,getProiecteEvaluare} from '../dataAccess/EvaluareDA.js';
 import {authMiddleware, checkRole } from '../middleware/middlewareAuth.js';
 import { selecteazaJuriu } from '../dataAccess/juriuController.js';
 
@@ -49,6 +49,23 @@ evaluareRouter.get(
   );
   
 
+// de vazut proiect de evaluat - student
+
+evaluareRouter.get('/proiecte-evaluare/:userId', authMiddleware, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+      console.log("Fetching projects for user:", userId); 
+
+      const proiecte = await getProiecteEvaluare(userId);
+      console.log("Projects found:", proiecte); 
+
+      res.status(200).json(proiecte);
+  } catch (error) {
+      console.error("Error fetching projects for evaluation:", error.message); 
+      res.status(500).json({ message: 'Eroare la preluarea proiectelor pentru evaluare.', error: error.message });
+  }
+});
 
 
 // Rută pentru acordarea notei
@@ -93,65 +110,6 @@ evaluareRouter.get('/nota-mea', authMiddleware, async (req, res) => {
     }
 });
 
-// GET: Obține toate evaluările
-evaluareRouter.route('/evaluare').get(async (req, res) => {
-    try {
-        res.status(200).json(await getEvaluari());
-    } catch (err) {
-        console.warn(err);
-        res.status(500).json({ message: 'server error' });
-    }
-});
-
-// GET: Obține o evaluare după ID
-evaluareRouter.route('/evaluare/:id').get(async (req, res) => {
-    try {
-        res.status(200).json(await getEvaluareById(req.params.id));
-    } catch (err) {
-        console.warn(err);
-        res.status(500).json({ message: 'server error' });
-    }
-});
-
-// POST: Crează o evaluare nouă
-evaluareRouter.route('/evaluare').post(async (req, res) => {
-    try {
-        res.status(201).json(await createEvaluare(req.body));
-    } catch (err) {
-        console.error("Error:", err); 
-        res.status(500).json({ message: 'server error', error: err.message });
-    }
-});
-
-// PUT: Actualizează o evaluare existentă după ID
-evaluareRouter.route('/evaluare/:id').put(async (req, res) => {
-    try {
-        let ret = await updateEvaluare(req.body, req.params.id);
-        if (ret.error) {
-            res.status(400).json(ret.msg);
-        } else {
-            res.status(200).json(ret.obj);
-        }
-    } catch (err) {
-        console.warn(err);
-        res.status(500).json({ message: 'server error' });
-    }
-});
-
-// DELETE: Șterge o evaluare după ID
-evaluareRouter.route('/evaluare/:id').delete(async (req, res) => {
-    try {
-        let ret = await deleteEvaluare(req.params.id);
-        if (ret.error) {
-            res.status(400).json(ret.msg);
-        } else {
-            res.status(200).json(ret.obj);
-        }
-    } catch (err) {
-        console.warn(err);
-        res.status(500).json({ message: 'server error' });
-    }
-});
 
 
 export default evaluareRouter;

@@ -430,3 +430,152 @@
   margin: 2rem auto;
   max-width: 600px;
 }
+
+.vizualizare-proiecte-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #bec2e8;
+  border-radius: 15px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.search-form {
+  margin-bottom: 2rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.search-input {
+  flex-grow: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.search-button {
+  padding: 0.5rem 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-button:hover {
+  background-color: #0056b3;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #007bff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.proiect-card {
+  background-color: #cc93b7;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.proiect-title {
+  font-size: 1.8rem;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.proiect-echipa {
+  font-size: 1.2rem;
+  color: #f0f0f0;
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.livrabile-title {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+
+.livrabile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.livrabil-card {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.livrabil-name {
+  font-size: 1.2rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.livrabil-date {
+  font-size: 0.9rem;
+  color: #f0f0f0;
+  margin-bottom: 1rem;
+}
+
+.livrabil-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.livrabil-link {
+  color: black; 
+  text-decoration: none; 
+  font-weight: bold;
+  display: inline-block; 
+  text-align: center; 
+  margin: 0 auto; 
+}
+
+.livrabil-link:hover {
+  color: gray; 
+}
+
+.no-livrabile {
+  color: #f0f0f0;
+  font-style: italic;
+}
+

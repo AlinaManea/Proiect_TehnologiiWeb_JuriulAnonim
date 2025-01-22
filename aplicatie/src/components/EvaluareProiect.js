@@ -1,127 +1,137 @@
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import API_URL from '../config';
-import React, { useState } from 'react';
 
 const EvaluareProiect = () => {
-  const [proiectId, setProiectId] = useState('');
-  const [livrabile, setLivrabile] = useState([]);
-  const [nota, setNota] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [proiecte, setProiecte] = useState([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [nota, setNota] = useState('');
+  const [proiectSelectat, setProiectSelectat] = useState(null);
 
-  const cautaLivrabile = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      const response = await fetch(`${API_URL}/api/livrabile/${proiectId}`);
-      if (!response.ok) throw new Error('Proiectul nu a fost găsit');
-      
-      const data = await response.json();
-      setLivrabile(data);
-    } catch (err) {
-      setError(err.message);
-      setLivrabile([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchProiecteEvaluare = async () => {
+        setLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            setError('Nu sunteți autentificat.');
+            setLoading(false);
+            return;
+        }
 
-  const submitNota = async (e) => {
-    e.preventDefault();
-    if (!nota || nota < 1 || nota > 10) {
-      setError('Nota trebuie să fie între 1 și 10');
+        try {
+            const tokenData = JSON.parse(atob(token.split('.')[1]));
+            const userId = tokenData.id; // ID utilizator din token
+            console.log("Fetching projects for user ID:", userId); // DEBUG
+
+            const response = await axios.get(`${API_URL}/api/proiecte-evaluare/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            console.log("Projects response:", response.data); // DEBUG
+            setProiecte(response.data);
+        } catch (err) {
+            console.error("Error fetching projects:", err.message); // DEBUG
+            setError('Eroare la preluarea proiectelor pentru evaluare.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    fetchProiecteEvaluare();
+}, []);
+
+
+  const acordaNota = async (proiectId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Nu sunteți autentificat.');
       return;
     }
 
     try {
-      const response = await fetch(`/api/evaluare/${proiectId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nota })
-      });
-      
-      if (!response.ok) throw new Error('Eroare la salvarea notei');
-      setError('Nota a fost salvată cu succes!');
+      const response = await axios.put(
+        `${API_URL}/api/acorda-nota/${proiectId}`,
+        { nota },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      // Actualizăm starea proiectelor pentru a reflecta nota acordată
+      setProiecte((prevProiecte) =>
+        prevProiecte.map((proiect) =>
+          proiect.proiectId === proiectId ? { ...proiect, nota: response.data.Nota } : proiect
+        )
+      );
+
       setNota('');
+      setProiectSelectat(null);
+      setError('');
     } catch (err) {
-      setError(err.message);
+      setError('Eroare la acordarea notei.');
+      console.error(err);
     }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Evaluare Proiect</h2>
-      
-      <form onSubmit={cautaLivrabile} className="mb-6">
-        <div className="flex gap-4">
-          <input
-            type="text"
-            value={proiectId}
-            onChange={(e) => setProiectId(e.target.value)}
-            placeholder="Introduceți ID-ul proiectului"
-            className="border p-2 rounded flex-grow"
-            required
-          />
-          <button 
-            type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Se caută...' : 'Caută'}
-          </button>
-        </div>
-      </form>
-
-      {livrabile.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-3">Livrabile găsite:</h3>
-          <ul className="border rounded divide-y">
-            {livrabile.map((livrabil) => (
-              <li key={livrabil.id} className="p-3">
-                <p className="font-medium">{livrabil.nume}</p>
-                <p className="text-gray-600">{livrabil.descriere}</p>
-                <a 
-                  href={livrabil.url} 
-                  className="text-blue-500 hover:underline"
-                  target="_blank" 
-                  rel="noopener noreferrer"
+    <div className="evaluare-proiect">
+      <h2>Proiectele atribuite pentru evaluare</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {loading && <p>Se încarcă...</p>}
+      {proiecte.length > 0 ? (
+        <ul>
+          {proiecte.map((proiect) => (
+            <li key={proiect.proiectId}>
+              <h3>{proiect.titlu}</h3>
+              <p><strong>ID Proiect:</strong> {proiect.proiectId}</p>
+              <h4>Livrabile:</h4>
+              <ul>
+                {proiect.livrabile.map((livrabil) => (
+                  <li key={livrabil.idLivrabil}>
+                    {livrabil.numeLivrabil} -{' '}
+                    <a href={livrabil.proiectLink} target="_blank" rel="noopener noreferrer">
+                      Vizualizează proiect
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {proiectSelectat === proiect.proiectId ? (
+                <div>
+                  <input
+                    type="number"
+                    value={nota}
+                    onChange={(e) => setNota(e.target.value)}
+                    placeholder="Adaugă o notă (1-10)"
+                    min="1"
+                    max="10"
+                    className="border p-2 rounded mb-2"
+                  />
+                  <button
+                    onClick={() => acordaNota(proiect.proiectId)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  >
+                    Salvează Nota
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setProiectSelectat(proiect.proiectId)}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                 >
-                  Descarcă livrabil
-                </a>
-              </li>
-            ))}
-          </ul>
-
-          <form onSubmit={submitNota} className="mt-6">
-            <div className="flex gap-4">
-              <input
-                type="number"
-                min="1"
-                max="10"
-                step="0.1"
-                value={nota}
-                onChange={(e) => setNota(e.target.value)}
-                placeholder="Introduceti nota (1-10)"
-                className="border p-2 rounded w-40"
-                required
-              />
-              <button 
-                type="submit"
-                className="bg-green-500 text-white px-4 py-2 rounded"
-              >
-                Salvează nota
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
+                  Adaugă o Notă
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>Nu aveți proiecte de evaluat.</p>
       )}
     </div>
   );
