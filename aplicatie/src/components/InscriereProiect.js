@@ -1,44 +1,56 @@
-// InscriereProiect.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_URL from '../config';
+import SuccessPopup from './SuccessPopup';
 
-function InscriereProiect({ state, setState }) {
+function InscriereProiect({ state = {}, setState }) {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        titlu: '',  // Schimbat din numeProiect în titlu
-        EchipaId: state.teamId || '' // Schimbat din idEchipa în EchipaId
+        titlu: '',
+        EchipaId: ''
     });
     const [showPopup, setShowPopup] = useState(false);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (state.teamId) {
+        // Verificăm dacă state și state.teamId există
+        if (state?.teamId) {
             setFormData(prev => ({
                 ...prev,
                 EchipaId: state.teamId
             }));
         }
-    }, [state.teamId]);
+    }, [state?.teamId]);
+
+    useEffect(() => {
+        // Verificăm dacă state există și are proprietățile necesare
+        if (state && (state.isLoggedIn === false || state.rol !== 'student')) {
+            navigate('/');
+        }
+    }, [state?.isLoggedIn, state?.rol, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-    
+
         const token = localStorage.getItem('token');
-        
-        // Validare date
+        if (!token) {
+            setError('Sesiune expirată. Vă rugăm să vă autentificați din nou.');
+            navigate('/login');
+            return;
+        }
+
         if (!formData.titlu.trim()) {
-            setError('Vă rugăm introduceți un titlu valid');
+            setError('Vă rugăm introduceți un titlu valid.');
             return;
         }
-    
+
         if (!formData.EchipaId || isNaN(parseInt(formData.EchipaId))) {
-            setError('Vă rugăm introduceți un ID de echipă valid');
+            setError('Vă rugăm introduceți un ID de echipă valid.');
             return;
         }
-    
+
         try {
             const response = await axios.post(`${API_URL}/api/creareproiect`, {
                 titlu: formData.titlu.trim(),
@@ -49,22 +61,24 @@ function InscriereProiect({ state, setState }) {
                     'Authorization': `Bearer ${token}`
                 }
             });
-    
+
             if (response.status === 201) {
-                setShowPopup(true);
+                console.log('Proiect creat cu succes!');
+                setShowPopup(true); 
                 setState(prevState => ({
                     ...prevState,
                     teamId: formData.EchipaId
                 }));
-    
+            
+               
                 setTimeout(() => {
                     setShowPopup(false);
                     navigate('/');
-                }, 2000);
+                }, 3000);
             }
         } catch (error) {
+            console.error('Eroare:', error);
             if (error.response) {
-                // Erori specifice de la server
                 switch (error.response.status) {
                     case 400:
                         setError('Date invalide. Verificați titlul și ID-ul echipei.');
@@ -78,7 +92,7 @@ function InscriereProiect({ state, setState }) {
                         setError('Nu aveți permisiunea de a crea un proiect.');
                         break;
                     default:
-                        setError(error.response.data?.message || 'A apărut o eroare la înregistrarea proiectului');
+                        setError(error.response.data?.message || 'A apărut o eroare la înregistrarea proiectului.');
                 }
             } else {
                 setError('Eroare de conexiune. Verificați conexiunea la internet.');
@@ -86,22 +100,18 @@ function InscriereProiect({ state, setState }) {
             setShowPopup(false);
         }
     };
-    
-    if (!state.isLoggedIn || state.rol !== 'student') {
-        return navigate('/');
-    }
 
     return (
         <div className="form-container">
             <h2>Înscriere Proiect</h2>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <label>Nume Proiect:</label>
+                    <label>Titlu Proiect:</label>
                     <input
                         type="text"
                         value={formData.titlu}
                         onChange={(e) => setFormData({...formData, titlu: e.target.value})}
-                        placeholder="Introduceți numele proiectului"
+                        placeholder="Introduceți titlul proiectului"
                         required
                     />
                 </div>
@@ -113,7 +123,7 @@ function InscriereProiect({ state, setState }) {
                         value={formData.EchipaId}
                         onChange={(e) => setFormData({...formData, EchipaId: e.target.value})}
                         placeholder="Introduceți ID-ul echipei"
-                        disabled={!!state.teamId}
+                        disabled={!!state?.teamId}
                         required
                     />
                 </div>
@@ -125,13 +135,10 @@ function InscriereProiect({ state, setState }) {
                 </button>
             </form>
 
-            {showPopup && (
-                <div className="popup">
-                    <div className="popup-content">
-                        <p>Înscriere finalizată cu succes!</p>
-                    </div>
-                </div>
-            )}
+            <SuccessPopup 
+                isVisible={showPopup} 
+                message="Înscriere finalizată cu succes!"
+            />
         </div>
     );
 }

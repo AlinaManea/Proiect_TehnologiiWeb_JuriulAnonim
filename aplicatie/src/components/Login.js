@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import API_URL from '../config';
 
 function Login({ loginData, setLoginData }) {
   const navigate = useNavigate();
+  const [showPopup, setShowPopup] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,19 +28,27 @@ function Login({ loginData, setLoginData }) {
 
       if (response.status === 200) {
         const { user, token } = response.data;
-        
+
         localStorage.setItem('token', token);
-      
+
         setLoginData(prevState => ({
           ...prevState,
           isLoggedIn: true,
           name: user.name,
           rol: user.rol,
           email: user.email,
-          teamId: user.teamId
+          teamId: user.teamId,
+          password: '' 
         }));
 
-        navigate('/');
+    
+        setShowPopup(true);
+
+       
+        setTimeout(() => {
+          setShowPopup(false);
+          navigate('/');
+        }, 2000);
       }
     } catch (error) {
       console.error('Eroare completă:', error);
@@ -51,7 +60,6 @@ function Login({ loginData, setLoginData }) {
         alert('Eroare la trimiterea cererii');
       }
     }
-    
   };
 
   return (
@@ -90,6 +98,14 @@ function Login({ loginData, setLoginData }) {
           Conectare
         </button>
       </form>
+
+      {showPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <p>Autentificare reușită! Redirecționare...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

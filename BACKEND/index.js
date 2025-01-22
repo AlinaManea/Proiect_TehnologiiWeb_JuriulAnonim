@@ -23,8 +23,8 @@ app.use(express.urlencoded({
 }))
 
 app.use(cors({
-    origin: 'http://localhost:3000',  // Specifică frontend-ul
-    credentials: true,  // Permite autentificarea (cookies sau tokenuri)
+    origin: 'http://localhost:3000',  
+    credentials: true,  
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
   }));

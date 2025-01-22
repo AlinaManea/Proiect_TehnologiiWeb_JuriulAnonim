@@ -1,6 +1,8 @@
 import React from 'react';
 import axios from 'axios';
-import API_URL from '../config'; // Importă URL-ul API-ului din config.js
+import API_URL from '../config'; 
+
+
 
 function Register({ registerData, setRegisterData, switchToLogin }) {
   const handleSubmit = async (e) => {

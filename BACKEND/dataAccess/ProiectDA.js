@@ -142,10 +142,15 @@ export async function deleteProiect(id) {
 
 export async function creareProiect(data, userId) {
     try {
-        
         const echipa = await Echipa.findByPk(data.EchipaId);
         if (!echipa) {
             throw new Error('Echipa nu a fost găsită!');
+        }
+
+        // Verificăm dacă echipa are deja un proiect asociat
+        const existingProject = await Proiect.findOne({ where: { EchipaId: data.EchipaId } });
+        if (existingProject) {
+            throw new Error('Această echipă are deja un proiect asociat!');
         }
 
         const utilizatoriInEchipa = await Utilizator.findAll({
@@ -156,6 +161,7 @@ export async function creareProiect(data, userId) {
             throw new Error('Utilizatorul nu face parte din echipa specificată!');
         }
 
+        // 
         const proiect = await Proiect.create({
             titlu: data.titlu,
             EchipaId: data.EchipaId
@@ -163,8 +169,11 @@ export async function creareProiect(data, userId) {
 
         return proiect; 
     } catch (err) {
-        throw new Error('Nu am reușit să creăm proiectul: ' + err.message);
+        // Capturăm eroarea originală fără a o arunca din nou
+        console.error('Eroare la crearea proiectului:', err.message);
+        throw err; // Aruncăm eroarea așa cum este
     }
 }
+
 
 
