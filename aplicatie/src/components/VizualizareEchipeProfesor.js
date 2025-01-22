@@ -1,39 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react"
 
-function VizualizareEchipeProfesor() {
-  const [echipe, setEchipe] = useState([]);
+
+const VizualizareEchipeProfesor = () => {
+  const [echipe, setEchipe] = useState([])
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock data - replace with actual API call
-    setEchipe([
-      { echipa_id: "E001", nume_echipa: "Echipa Alpha" },
-      { echipa_id: "E002", nume_echipa: "Echipa Beta" },
-    ]);
-  }, []);
+    const fetchEchipe = async () => {
+      try {
+        const response = await fetch("/api/echipa")
+        if (!response.ok) throw new Error("Server error")
+        const data = await response.json()
+        setEchipe(data)
+      } catch (err) {
+        setError("Eroare la încărcarea echipelor")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchEchipe()
+  }, [])
+
+  if (loading) return <div className="loading-spinner">Se încarcă...</div>
+  if (error) return <div className="error-message">{error}</div>
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Vizualizare Echipe</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white shadow-md rounded">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="px-4 py-2">ID Echipă</th>
-              <th className="px-4 py-2">Nume Echipă</th>
-            </tr>
-          </thead>
-          <tbody>
-            {echipe.map(echipa => (
-              <tr key={echipa.echipa_id} className="border-b">
-                <td className="px-4 py-2">{echipa.echipa_id}</td>
-                <td className="px-4 py-2">{echipa.nume_echipa}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="vizualizare-echipe-container">
+      <h2 className="page-title">Vizualizare Echipe</h2>
+      <div className="echipe-grid">
+        {echipe.map((echipa) => (
+          <div key={echipa.EchipaId} className="echipa-card">
+            <h3 className="echipa-name">{echipa.EchipaNume}</h3>
+            <p className="echipa-id">ID Echipă: {echipa.EchipaId}</p>
+            <div className="membri-container">
+              <h4 className="membri-title">Membri:</h4>
+              {echipa.Membri && echipa.Membri.length > 0 ? (
+                <ul className="membri-list">
+                  {echipa.Membri.map((membru) => (
+                    <li key={membru.UtilizatorId} className="membru-item">
+                      {membru.UtilizatorNume}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-membri">Niciun membru</p>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
-  );
+  )
 }
 
-export default VizualizareEchipeProfesor;
+export default VizualizareEchipeProfesor

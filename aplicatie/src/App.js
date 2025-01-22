@@ -171,6 +171,7 @@ import VizualizareProiecteProfesor from './components/VizualizareProiecteProfeso
 import SelectieJuriu from './components/SelectieJuriu';
 import VizualizareEchipeProfesor from './components/VizualizareEchipeProfesor.js';
 import VizualizareNoteProfesor from './components/VizualizareNoteProfesor.js';
+import EvaluareProiect from './components/EvaluareProiect.js';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import React from 'react';
 
@@ -309,6 +310,15 @@ function App() {
                 />
               }
             />
+            <Route
+             path="/evaluare-proiect"
+               element={
+               <ProtectedRoute 
+                element={<EvaluareProiect />}
+                 allowedRoles={['student']}
+                />
+              }
+              />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         )}

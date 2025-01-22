@@ -1,50 +1,124 @@
 import React, { useState } from 'react';
 
-function SelectieJuriu() {
-  const [formData, setFormData] = useState({
-    id_proiect: '',
-    numar_jurati: ''
+const SelectieJuriu = () => {
+  const [idProiect, setIdProiect] = useState('');
+  const [numarJurati, setNumarJurati] = useState('');
+  const [juratiSelectati, setJuratiSelectati] = useState(null);
+  const [error, setError] = useState(null);
+
+  const getAuthHeaders = () => ({
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
   });
 
-  const handleSubmit = (e) => {
+  const selecteazaJuriu = async (e) => {
     e.preventDefault();
-    // Handle form submission - connect to backend
-    console.log('Form submitted:', formData);
+    setError(null);
+    
+    try {
+      const response = await fetch(`/api/selecteaza-juriu/${idProiect}/${numarJurati}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Eroare la selectarea juriului');
+      }
+
+      const data = await response.json();
+      setJuratiSelectati(data.jurati);
+    } catch (err) {
+      setError(err.message);
+      console.error('Eroare la selectarea juriului:', err);
+    }
+  };
+
+  const salveazaJuriu = async () => {
+    if (!juratiSelectati) return;
+
+    try {
+      const response = await fetch('/api/adauga-juriu', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          idProiect,
+          jurati: juratiSelectati
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Eroare la salvarea juriului');
+      }
+
+      const data = await response.json();
+      console.log('Juriul a fost salvat cu succes:', data);
+      
+      setJuratiSelectati(null);
+      setIdProiect('');
+      setNumarJurati('');
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Eroare la salvarea juriului:', err);
+    }
   };
 
   return (
     <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Selectie Juriu</h2>
-      <div className="bg-white shadow-md rounded p-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">ID Proiect</label>
-            <input
-              type="text"
-              value={formData.id_proiect}
-              onChange={(e) => setFormData({...formData, id_proiect: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Număr Jurați</label>
-            <input
-              type="number"
-              value={formData.numar_jurati}
-              onChange={(e) => setFormData({...formData, numar_jurati: e.target.value})}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <button
-            type="submit"
+      <h2 className="text-2xl font-bold mb-4">Selectare Juriu</h2>
+
+      <form onSubmit={selecteazaJuriu} className="mb-4">
+        <div className="flex gap-4 mb-4">
+          <input
+            type="number"
+            value={idProiect}
+            onChange={(e) => setIdProiect(e.target.value)}
+            placeholder="ID Proiect"
+            className="border p-2 rounded"
+            required
+          />
+          <input
+            type="number"
+            value={numarJurati}
+            onChange={(e) => setNumarJurati(e.target.value)}
+            placeholder="Număr Jurați"
+            className="border p-2 rounded"
+            required
+          />
+          <button 
+            type="submit" 
             className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
           >
-            Salvează
+            Selectează Juriu
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
+
+      {error && (
+        <div className="text-red-500 mb-4 p-2 bg-red-50 rounded border border-red-200">
+          {error}
+        </div>
+      )}
+
+      {juratiSelectati && (
+        <div className="mt-4">
+          <h3 className="text-xl mb-2">Jurați Selectați:</h3>
+          <ul className="list-disc pl-5 mb-4">
+            {juratiSelectati.map(juratId => (
+              <li key={juratId}>ID Jurat: {juratId}</li>
+            ))}
+          </ul>
+          <button
+            onClick={salveazaJuriu}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Salvează Juriul
+          </button>
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default SelectieJuriu;

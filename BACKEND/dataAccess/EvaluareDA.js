@@ -94,89 +94,90 @@ export async function deleteEvaluare(id) {
 }
  
 import { Sequelize, Op } from 'sequelize';
-
- export const selecteazaJuriu = async (proiectId, numarJurati) => {
+export const selecteazaJuriu = async (proiectId, numarJurati) => {
     try {
-
-        const proiect = await Proiect.findOne({
-            where: { idProiect: proiectId },
-        });
-
-        if (!proiect) {
-            throw new Error("Proiectul nu există");
-        }
-
-        const membriiEchipei = await Utilizator.findAll({
-            where: { EchipaId: proiect.EchipaId }, 
-            attributes: ['UtilizatorId'],
-        });
-
-        const idMembriiEchipa = membriiEchipei.map(membru => membru.UtilizatorId);
-
-        const juratiSelectati = await Utilizator.findAll({
-            where: {
-                UtilizatorRol: 'student',  
-                UtilizatorId: { [Op.notIn]: idMembriiEchipa },  
-            },
-            order: Sequelize.literal('RAND()'),  
-            limit: numarJurati,
-        });
-
-        const juriuExistent = await Evaluare.findOne({
-            where: { ProiectId: proiectId },
-        });
-
-        if (juriuExistent) {
-            throw new Error("Proiectul are deja un juriu selectat!");
-        }
-
-        const evaluari = juratiSelectati.map(jurat => ({
-            ProiectId: proiectId,       
-            UtilizatorId: jurat.UtilizatorId, 
-            Nota: null,  
-        }));
-
-        await Evaluare.bulkCreate(evaluari);
-
-        return juratiSelectati.map(jurat => jurat.UtilizatorId);
+      // Verifică existența proiectului
+      const proiect = await Proiect.findOne({
+        where: { idProiect: proiectId },
+      });
+  
+      if (!proiect) {
+        throw new Error("Proiectul nu există");
+      }
+  
+      // Verifică dacă există deja un juriu
+      const juriuExistent = await Evaluare.findOne({
+        where: { ProiectId: proiectId },
+      });
+  
+      if (juriuExistent) {
+        throw new Error("Proiectul are deja un juriu selectat!");
+      }
+  
+      // Găsește membrii echipei
+      const membriiEchipei = await Utilizator.findAll({
+        where: { EchipaId: proiect.EchipaId },
+        attributes: ['UtilizatorId'],
+      });
+  
+      const idMembriiEchipa = membriiEchipei.map(membru => membru.UtilizatorId);
+  
+      // Selectează jurați random
+      const juratiSelectati = await Utilizator.findAll({
+        where: {
+          UtilizatorRol: 'student',
+          UtilizatorId: { [Op.notIn]: idMembriiEchipa },
+        },
+        order: Sequelize.literal('RAND()'),
+        limit: numarJurati,
+      });
+  
+      // Creează evaluările
+      const evaluari = juratiSelectati.map(jurat => ({
+        ProiectId: proiectId,
+        UtilizatorId: jurat.UtilizatorId,
+        Nota: null,
+      }));
+  
+      await Evaluare.bulkCreate(evaluari);
+  
+      return juratiSelectati.map(jurat => jurat.UtilizatorId);
     } catch (error) {
-        throw new Error("Eroare la selectarea juriului: " + error.message);
+      throw new Error("Eroare la selectarea juriului: " + error.message);
     }
-};
-
-
-
-export const adaugaJuriu = async (idProiect, jurati) => {
+  };
+  
+  // Logica pentru adăugarea juriului
+  export const adaugaJuriu = async (idProiect, jurati) => {
     try {
-        const jurațiExistenti = await Evaluare.findAll({
-            where: { ProiectId: idProiect, UtilizatorId: { [Op.in]: jurati } },
-            attributes: ['UtilizatorId']
-        });
-
-        const idJuratiExistenti = jurațiExistenti.map(jurat => jurat.UtilizatorId);
-
-        const juratiDeAdaugat = jurati.filter(juratId => !idJuratiExistenti.includes(juratId));
-
-        if (juratiDeAdaugat.length === 0) {
-            throw new Error('Toți jurații au fost deja adăugați pentru acest proiect');
-        }
-
-        const evaluari = juratiDeAdaugat.map(juratId => ({
-            ProiectId: idProiect,
-            UtilizatorId: juratId,
-            Nota: null,  //  initial, nota e null
-        }));
-
-        // adaugamevaluările în tabela Evaluare
-        const result = await Evaluare.bulkCreate(evaluari);
-
-        
-        return result;
+      const jurațiExistenti = await Evaluare.findAll({
+        where: {
+          ProiectId: idProiect,
+          UtilizatorId: { [Op.in]: jurati }
+        },
+        attributes: ['UtilizatorId']
+      });
+  
+      const idJuratiExistenti = jurațiExistenti.map(jurat => jurat.UtilizatorId);
+      const juratiDeAdaugat = jurati.filter(juratId => !idJuratiExistenti.includes(juratId));
+  
+      if (juratiDeAdaugat.length === 0) {
+        throw new Error('Toți jurații au fost deja adăugați pentru acest proiect');
+      }
+  
+      const evaluari = juratiDeAdaugat.map(juratId => ({
+        ProiectId: idProiect,
+        UtilizatorId: juratId,
+        Nota: null,
+      }));
+  
+      const result = await Evaluare.bulkCreate(evaluari);
+      return result;
     } catch (err) {
-        throw new Error(err.message);
+      throw new Error(err.message);
     }
-};
-
+  };
+  
 //Verificare daca e jurat
 export const esteJuratPentruProiect = async (proiectId, utilizatorId) => {
     const evaluare = await Evaluare.findOne({

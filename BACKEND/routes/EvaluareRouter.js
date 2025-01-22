@@ -8,34 +8,46 @@ let evaluareRouter = express.Router();
 
 // Ruta pentru selectarea juriului (cu autentificare și verificare rol profesor)
 let juriuSelectat = {}; 
-evaluareRouter.get('/selecteaza-juriu/:idProiect/:numarJurati', authMiddleware, checkRole('profesor'), async (req, res) => {
-    try {
+// Selectare juriu
+evaluareRouter.get(
+    '/selecteaza-juriu/:idProiect/:numarJurati',
+    authMiddleware,
+    checkRole('profesor'),
+    async (req, res) => {
+      try {
         const { idProiect, numarJurati } = req.params;
         const jurati = await selecteazaJuriu(idProiect, parseInt(numarJurati));
         res.status(200).json({ jurati });
-
-    } catch (err) {
+      } catch (err) {
         res.status(400).json({ error: err.message });
+      }
     }
-});
-
-//Punere in baza de date evaluare
-
-evaluareRouter.post('/adauga-juriu', authMiddleware, checkRole('profesor'), async (req, res) => {
-    try {
-        const { idProiect, jurati } = req.body;  
+  );
+  
+  // Adăugare juriu în baza de date
+  evaluareRouter.post(
+    '/adauga-juriu',
+    authMiddleware,
+    checkRole('profesor'),
+    async (req, res) => {
+      try {
+        const { idProiect, jurati } = req.body;
+  
         if (!idProiect || !jurati || jurati.length === 0) {
-            throw new Error("ID-ul proiectului și lista de jurați sunt obligatorii");
+          throw new Error("ID-ul proiectului și lista de jurați sunt obligatorii");
         }
-
+  
         const result = await adaugaJuriu(idProiect, jurati);
-        res.status(200).json({ message: 'Jurații au fost adăugați cu succes', evaluari: result });
-
-    } catch (err) {
-
+        res.status(200).json({
+          message: 'Jurații au fost adăugați cu succes',
+          evaluari: result
+        });
+      } catch (err) {
         res.status(400).json({ error: err.message });
+      }
     }
-});
+  );
+  
 
 
 
