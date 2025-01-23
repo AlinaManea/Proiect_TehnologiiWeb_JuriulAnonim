@@ -342,8 +342,40 @@ export const acordaNota = async (proiectId, utilizatorId, nota) => {
     }
 };
 
+// export const calculeazaNotaFinala = async (proiectId) => {
+//     try {
+//         const evaluari = await Evaluare.findAll({
+//             where: {
+//                 ProiectId: proiectId,
+//                 Nota: {
+//                     [Sequelize.Op.ne]: null 
+//                 }
+//             },
+//             attributes: ['Nota']
+//         });
+
+//         if (evaluari.length < 3) {
+//             throw new Error("Nu sunt suficiente note pentru a calcula media (minim 3 note necesare)");
+//         }
+
+
+//         const note = evaluari.map(ev => parseFloat(ev.Nota)).sort((a, b) => a - b);
+        
+//         note.shift(); 
+//         note.pop();    
+
+//         const suma = note.reduce((acc, nota) => acc + nota, 0);
+//         const media = (suma / note.length).toFixed(2);
+
+//         return parseFloat(media);
+//     } catch (error) {
+//         throw new Error(`Eroare la calcularea notei finale: ${error.message}`);
+//     }
+// };
+
 export const calculeazaNotaFinala = async (proiectId) => {
     try {
+    
         const evaluari = await Evaluare.findAll({
             where: {
                 ProiectId: proiectId,
@@ -351,23 +383,21 @@ export const calculeazaNotaFinala = async (proiectId) => {
                     [Sequelize.Op.ne]: null 
                 }
             },
-            attributes: ['Nota']
+            attributes: ['Nota'] 
         });
 
-        if (evaluari.length < 3) {
-            throw new Error("Nu sunt suficiente note pentru a calcula media (minim 3 note necesare)");
+       
+        if (evaluari.length === 0) {
+            throw new Error("Nu există note pentru acest proiect.");
         }
 
-
-        const note = evaluari.map(ev => parseFloat(ev.Nota)).sort((a, b) => a - b);
-        
-        note.shift(); 
-        note.pop();    
-
+        const note = evaluari.map(ev => parseFloat(ev.Nota));
         const suma = note.reduce((acc, nota) => acc + nota, 0);
+
+      
         const media = (suma / note.length).toFixed(2);
 
-        return parseFloat(media);
+        return parseFloat(media); 
     } catch (error) {
         throw new Error(`Eroare la calcularea notei finale: ${error.message}`);
     }

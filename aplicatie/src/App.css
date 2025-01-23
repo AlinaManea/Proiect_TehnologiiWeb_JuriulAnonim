@@ -579,3 +579,90 @@
   font-style: italic;
 }
 
+.vizualizare-note-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+  font-size: 2.5rem;
+  color: #374151;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+}
+
+.table thead tr {
+  background: linear-gradient(to right, #60a5fa, #3b82f6);
+  color: white;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.table th, .table td {
+  padding: 1rem;
+  text-align: left;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f3f4f6;
+}
+
+.table tbody tr:hover {
+  background-color: #e0f2fe;
+  cursor: pointer;
+}
+
+.table td {
+  color: #374151;
+  font-weight: 500;
+}
+
+.table .important {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #3b82f6;
+  padding: 2rem;
+  animation: pulse 1.5s infinite;
+}
+
+.error-message {
+  color: #ef4444;
+  background-color: #fee2e2;
+  padding: 1rem;
+  border-radius: 6px;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
