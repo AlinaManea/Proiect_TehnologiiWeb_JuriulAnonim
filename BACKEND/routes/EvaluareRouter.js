@@ -2,6 +2,7 @@ import express from 'express';
 import { createEvaluare, getEvaluari, getEvaluareById, updateEvaluare, deleteEvaluare,adaugaJuriu, acordaNota,esteJuratPentruProiect,getToateNotelePtProfesor,getNotaPropriuProiect,getProiecteEvaluare} from '../dataAccess/EvaluareDA.js';
 import {authMiddleware, checkRole } from '../middleware/middlewareAuth.js';
 import { selecteazaJuriu } from '../dataAccess/juriuController.js';
+import Evaluare from '../entities/Evaluare.js';
 
 
 let evaluareRouter = express.Router();
@@ -51,22 +52,52 @@ evaluareRouter.get(
 
 // de vazut proiect de evaluat - student
 
-evaluareRouter.get('/proiecte-evaluare/:userId', authMiddleware, async (req, res) => {
-  const { userId } = req.params;
+// evaluareRouter.get('/proiecte-evaluare/:userId', authMiddleware, async (req, res) => {
+//   const { userId } = req.params;
+
+//   try {
+//       console.log("Fetching projects for user:", userId); 
+
+//       const proiecte = await getProiecteEvaluare(userId);
+//       console.log("Projects found:", proiecte); 
+
+//       res.status(200).json(proiecte);
+//   } catch (error) {
+//       console.error("Error fetching projects for evaluation:", error.message); 
+//       res.status(500).json({ message: 'Eroare la preluarea proiectelor pentru evaluare.', error: error.message });
+//   }
+// });
+// evaluareRouter.get('/proiecte-evaluare/:userId', authMiddleware, async (req, res) => {
+//   const { userId } = req.params;
+
+//   try {
+//       const proiecte = await getProiecteEvaluare(userId);
+//       res.status(200).json(proiecte);
+//   } catch (error) {
+//       console.error("Error fetching projects for evaluation:", error);
+//       res.status(500).json({ 
+//           message: 'Eroare la preluarea proiectelor pentru evaluare.',
+//           error: error.message 
+//       });
+//   }
+// });
+
+
+evaluareRouter.get('/proiecte-evaluare', authMiddleware, async (req, res) => {
+  const utilizatorId = req.user.id;
 
   try {
-      console.log("Fetching projects for user:", userId); 
+    console.log("Fetching projects for user:", utilizatorId);
 
-      const proiecte = await getProiecteEvaluare(userId);
-      console.log("Projects found:", proiecte); 
+    const proiecte = await getProiecteEvaluare(utilizatorId);
+    console.log("Projects found:", proiecte);
 
-      res.status(200).json(proiecte);
+    res.status(200).json(proiecte);
   } catch (error) {
-      console.error("Error fetching projects for evaluation:", error.message); 
-      res.status(500).json({ message: 'Eroare la preluarea proiectelor pentru evaluare.', error: error.message });
+    console.error("Error fetching projects for evaluation:", error.message);
+    res.status(500).json({ message: 'Eroare la preluarea proiectelor pentru evaluare.', error: error.message });
   }
 });
-
 
 // Rută pentru acordarea notei
 evaluareRouter.put('/acorda-nota/:proiectId', authMiddleware, async (req, res) => {
@@ -88,6 +119,7 @@ evaluareRouter.put('/acorda-nota/:proiectId', authMiddleware, async (req, res) =
         res.status(500).json({ message: error.message });
     }
 });
+
 
 // Ruta pentru profesor - vizualizarea listelor cu proiecte + notele finale aferente
 evaluareRouter.get('/note-finale', authMiddleware, checkRole('profesor'), async (req, res) => {

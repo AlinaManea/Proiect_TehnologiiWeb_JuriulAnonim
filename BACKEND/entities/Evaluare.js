@@ -26,7 +26,7 @@ const Evaluare=db.define("Evaluare", {
     },
    
     Nota: {
-        type: Sequelize.DECIMAL,
+        type: Sequelize.DECIMAL(4,2),
         allowNull: true, // Inițial poate fi NULL
         // validate: {
         //     min: 1.00,

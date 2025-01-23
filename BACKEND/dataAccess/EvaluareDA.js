@@ -2,6 +2,7 @@ import Evaluare from '../entities/Evaluare.js';
 import Proiect from '../entities/Proiect.js';
 import Utilizator from '../entities/Utilizator.js';
 import Echipa from '../entities/Echipa.js';
+import Livrabil from '../entities/Livrabil.js';
 
 
 // GET: Obține toate evaluările
@@ -214,40 +215,95 @@ export const selecteazaJuriu = async (proiectId, numarJurati) => {
 //     }
 // };
 
+// export const getProiecteEvaluare = async (userId) => {
+//     try {
+//         // const proiecte = await Evaluare.findAll({
+//         //     where: { UtilizatorId: userId },
+//         //     include: [
+//         //         {
+//         //             model: Proiect,
+//         //             as: "Proiect", 
+//         //             include: [
+//         //                 {
+//         //                     model: Livrabil,
+//         //                     as: "Livrabile"
+//         //                 }
+//         //             ]
+//         //         }
+//         //     ]
+//         // });
+//         const proiecte = await Evaluare.findAll({
+//             where: { 
+//                 UtilizatorId: userId,
+//                 nota: null  // Luăm doar proiectele care nu au încă notă
+//             },
+//             include: [
+//                 {
+//                     model: Proiect,
+//                     as: "Proiect",
+//                     include: [
+//                         {
+//                             model: Livrabil,
+//                             as: "Livrabile"
+//                         }
+//                     ]
+//                 }
+//             ]
+//         });
+
+//         console.log("Projects retrieved from DB:", proiecte); // DEBUG
+
+//         return proiecte.map(evaluare => ({
+//             proiectId: evaluare.Proiect.idProiect,
+//             titlu: evaluare.Proiect.titlu,
+//             livrabile: evaluare.Proiect.Livrabile.map(livrabil => ({
+//                 idLivrabil: livrabil.idLivrabil,
+//                 numeLivrabil: livrabil.numeLivrabil,
+//                 dataLivrare: livrabil.dataLivrare,
+//                 videoLink: livrabil.videoLink,
+//                 proiectLink: livrabil.proiectLink
+//             }))
+//         }));
+//     } catch (error) {
+//         console.error("Error in getProiecteEvaluare:", error.message); // DEBUG
+//         throw new Error('Eroare la preluarea proiectelor pentru evaluare.');
+//     }
+// };
+
+
 export const getProiecteEvaluare = async (userId) => {
     try {
-        const proiecte = await Evaluare.findAll({
-            where: { UtilizatorId: userId },
+        const evaluari = await Evaluare.findAll({
+            where: { 
+                UtilizatorId: userId,
+                Nota: null 
+            },
             include: [
                 {
                     model: Proiect,
-                    as: "Proiect", 
                     include: [
                         {
                             model: Livrabil,
-                            as: "Livrabile"
+                            as: 'Livrabile'
                         }
                     ]
                 }
             ]
         });
 
-        console.log("Projects retrieved from DB:", proiecte); // DEBUG
-
-        return proiecte.map(evaluare => ({
+        return evaluari.map(evaluare => ({
             proiectId: evaluare.Proiect.idProiect,
             titlu: evaluare.Proiect.titlu,
             livrabile: evaluare.Proiect.Livrabile.map(livrabil => ({
                 idLivrabil: livrabil.idLivrabil,
                 numeLivrabil: livrabil.numeLivrabil,
-                dataLivrare: livrabil.dataLivrare,
                 videoLink: livrabil.videoLink,
                 proiectLink: livrabil.proiectLink
-            }))
+            })),
+            evaluareId: evaluare.EvaluareId
         }));
     } catch (error) {
-        console.error("Error in getProiecteEvaluare:", error.message); // DEBUG
-        throw new Error('Eroare la preluarea proiectelor pentru evaluare.');
+        throw new Error('Eroare la preluarea proiectelor pentru evaluare: ' + error.message);
     }
 };
 
@@ -265,9 +321,8 @@ export const esteJuratPentruProiect = async (proiectId, utilizatorId) => {
 //Acordare nota 
 export const acordaNota = async (proiectId, utilizatorId, nota) => {
     try {
-        
         const evaluare = await Evaluare.findOne({
-            where: { ProiectId: proiectId, UtilizatorId: utilizatorId },
+            where: { ProiectId: proiectId, UtilizatorId: utilizatorId }
         });
 
         if (!evaluare) {
@@ -286,7 +341,6 @@ export const acordaNota = async (proiectId, utilizatorId, nota) => {
         throw new Error(err.message);
     }
 };
-
 
 export const calculeazaNotaFinala = async (proiectId) => {
     try {
