@@ -30,10 +30,10 @@ The application is built on a Single Page Application architecture and is access
 - Final grade calculated as a mean
 
 ## Technologies 🛠️
-React 
-Node.js 
-MongoDB 
-CSS 
+- React 
+- Node.js 
+- MySQL
+- CSS 
 
 ## Installation
 
