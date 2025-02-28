@@ -39,7 +39,7 @@ The application is built on a Single Page Application architecture and is access
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/TECH_WEB_PROIECT_Juriu_Anonim.git
+   https://github.com/AlinaManea/Project_WebTech_AnonymousJury.git
    ```
 
 2. Navigate to the backend directory and install dependencies:
