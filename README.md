@@ -30,10 +30,10 @@ The application is built on a Single Page Application architecture and is access
 - Final grade calculated as a mean
 
 ## Technologies 🛠️
-- **Frontend:** React.js
-- **Backend:** Node.js + Express
-- **Database:** MySQL
-- **ORM:** Sequelize
+React Icon React
+Node.js Icon Node.js
+MongoDB Icon MongoDB
+CSS Icon CSS
 
 ## Installation
 
@@ -57,7 +57,7 @@ The application is built on a Single Page Application architecture and is access
 
 4. Start the backend server:
    ```bash
-   npm start
+   node index.js
    ```
 
 5. Navigate to the frontend directory and install dependencies:
