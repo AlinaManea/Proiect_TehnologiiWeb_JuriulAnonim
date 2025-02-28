@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import API_URL from '../config';
 
-const VizualizareProiectProfesor = () => {
+const VizualizareProiect = () => {
   const [idProiect, setIdProiect] = useState('');
   const [proiect, setProiect] = useState(null);
   const [error, setError] = useState(null);
@@ -13,14 +13,13 @@ const VizualizareProiectProfesor = () => {
     setProiect(null);
   
     try {
-      // Obține token-ul din localStorage
+    
       const token = localStorage.getItem('token');
   
       if (!token) {
         throw new Error("Token-ul de autentificare este necesar.");
       }
   
-      // Adaugă token-ul în header pentru cererea API
       const response = await fetch(`${API_URL}/api/proiect/${idProiect}/livrabile`, {
         method: 'GET',
         headers: {
@@ -133,4 +132,4 @@ const VizualizareProiectProfesor = () => {
   );
 };
 
-export default VizualizareProiectProfesor;
+export default VizualizareProiect;

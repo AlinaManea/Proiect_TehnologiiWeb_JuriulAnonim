@@ -96,14 +96,6 @@ livrabilRouter.post('/proiect/:idProiect/livrabil', authMiddleware, async (req, 
             });
         }
 
-        // if (videoLink && !validator.isURL(videoLink, { protocols: ['http', 'https'] })) {
-        //     return res.status(400).json({ message: 'Link-ul video nu este valid!' });
-        // }
-
-        // if (proiectLink && !validator.isURL(proiectLink, { protocols: ['http', 'https'] })) {
-        //     return res.status(400).json({ message: 'Link-ul proiectului nu este valid!' });
-        // }
-
         if (videoLink && !/^https?:\/\//i.test(videoLink)) {
             return res.status(400).json({ message: 'Link-ul video trebuie să înceapă cu http:// sau https://' });
         }

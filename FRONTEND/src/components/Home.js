@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 function Home({ user, onLogout }) {
   const navigate = useNavigate();
 
-  console.log(user); // Verifică ce conține `user`
+  console.log(user); 
 
   const getMenuItems = (rol) => {
     if (rol === 'student') {
@@ -40,7 +40,7 @@ function Home({ user, onLogout }) {
               Acasă
             </button>
           </li>
-          {/* Verificăm dacă există elemente în menuItems înainte de a aplica map */}
+          {}
           {menuItems && menuItems.length > 0 ? (
             menuItems.map(item => (
               <li key={item.id}>

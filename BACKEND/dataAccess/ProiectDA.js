@@ -164,7 +164,7 @@ export const getProiecteWithLivrabile = async () => {
         console.log("Query completed, projects found:", proiecte?.length || 0);
         
         if (!proiecte || proiecte.length === 0) {
-            return []; // Return empty array instead of throwing error
+            return []; 
         }
         
         return proiecte;
@@ -203,8 +203,8 @@ export async function creareProiect(data, userId) {
 
         return proiect; 
     } catch (err) {
-        // Capturăm eroarea originală fără a o arunca din nou
+  
         console.error('Eroare la crearea proiectului:', err.message);
-        throw err; // Aruncăm eroarea așa cum este
+        throw err; 
     }
 }

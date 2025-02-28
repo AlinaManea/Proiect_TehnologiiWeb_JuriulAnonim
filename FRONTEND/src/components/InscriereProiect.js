@@ -14,7 +14,7 @@ function InscriereProiect({ state = {}, setState }) {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // Verificăm dacă state și state.teamId există
+     
         if (state?.teamId) {
             setFormData(prev => ({
                 ...prev,
@@ -24,7 +24,7 @@ function InscriereProiect({ state = {}, setState }) {
     }, [state?.teamId]);
 
     useEffect(() => {
-        // Verificăm dacă state există și are proprietățile necesare
+     
         if (state && (state.isLoggedIn === false || state.rol !== 'student')) {
             navigate('/');
         }

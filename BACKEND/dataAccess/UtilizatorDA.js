@@ -23,7 +23,7 @@ async function getUtilizatorByEmail(email) {
         include: [{ model: Echipa, as: "Membri" }]
     });
 }
-// Funcția de creare a unui utilizator
+
 async function createUtilizator(utilizator) {
     try {
         return await Utilizator.create(utilizator, {
@@ -66,7 +66,7 @@ async function deleteUtilizator(id) {
     };
 }
 
-// Exemplu de filtrare si paginare
+
 async function getUtilizatoriWithFilterAndPagination(filter) {
     if (!filter.take) filter.take = 10;
     if (!filter.skip) filter.skip = 1;
