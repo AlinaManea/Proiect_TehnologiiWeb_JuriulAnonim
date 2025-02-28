@@ -70,10 +70,3 @@ The application is built on a Single Page Application architecture and is access
    ```bash
    npm start
    ```
-
-
-## Permissions System
-- Only jury members can add/modify their own grades.
-- Modifications are allowed only for a limited period.
-- Professors can only view results without identifying the jurors.
-
